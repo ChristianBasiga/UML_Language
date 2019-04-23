@@ -38,7 +38,6 @@ all|parents|children	{assignToString(); return PRINT_SPECIFICATION;}
 [a-zA-Z]+[a-zA-Z0-9]*	{assignToString(); return IDENTIFIER;}
 \+|-|\*			{assignToChar(); return ACCESS;}
 \^|>			{assignToChar(); return RELATION;}
-\n	;
 [ \t]	;
 	
 
