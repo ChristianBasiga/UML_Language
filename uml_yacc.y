@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+//Will convert below to C++ likely instead of C, much easier to work with.
+//Will store identifiers in bst or trie. To reuse characters, I will build a trie instead
+//for now static 26.
+
+
+
+
 int yydebug = 1;
 
 void yyerror(const char* err){
@@ -54,15 +61,43 @@ main(){
 
 command:
       	COMMAND meta_data STRUCTURE IDENTIFIER
+	{
+
+		if (strcmp($1, "create") != 0){
+			YYABORT;
+		}
+		else{
+			printf("Creation of structure command %s\n", $1);
+			YYACCEPT;
+		}
+	}
 	|
-	COMMAND meta_data ACCESS data_type IDENTIFIER '>' IDENTIFIER
+	COMMAND meta_data ACCESS data_type IDENTIFIER RELATION IDENTIFIER
+	{
+		if (strcmp($1, "create") != 0){
+			YYABORT;
+		}
+		else{
+
+			printf("Creating member %s of structure %s\n", $5, $7);
+		}
+	}
 	|
 	COMMAND print_format IDENTIFIER
 	{
 
-		printf("Did print command\n");
-		//Accept this as valid syntax, then keep going, untl not accept
-		YYACCEPT;
+		if (strcmp($1,"print") == 0){
+
+			printf("Did print command\n");
+			//Accept this as valid syntax, then keep going, untl not accept
+			YYACCEPT;
+		}
+		else{
+
+			printf("Incorrect syntax\n");
+			YYABORT;
+		}
+
 
 	}
 	|	
