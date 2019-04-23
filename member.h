@@ -1,6 +1,6 @@
 #ifdef MEMBER_H
 #define MEMBER_H
-
+#include "structure.h"
 typedef enum {VARIABLE, FUNCTION} memberType;
 
 //Bst for members cause not likely to have alot of overlap
@@ -19,8 +19,10 @@ typedef struct{
 
 
 //Traversing member identifiers per structure.
-int memberExists(char* structureName, char* memberName);
-int addMember(char* structureName, member* memberToAdd);
+//Structure instead of structure name to avoid circular dependancy.
+//I mean having it still makes it require lmao.
+int memberExists(structure* s, char* memberName);
+int addMember(structure* s, member* memberToAdd);
 
 
 #endif
