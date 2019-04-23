@@ -1,7 +1,7 @@
 #ifdef STRUCTURE_H
 #define STRUCTURE_H
 
-#include "members.h"
+#include "member.h"
 
 //Could prob move this stuff around.
 
@@ -26,8 +26,8 @@ typedef struct{
 
 //Traversiing structure identifiers.
 
-int structureExists(char* structureName);
-int addStructure(char* structureName, structureType type);
-structure* getStructure(char* structureName);
+int structureExists(structure_trie* root, char* structureName);
+int addStructure(structure_trie* root, char* structureName, structureType type);
+structure* getStructure(structure_trie* root, char* structureName);
 
 #endif
