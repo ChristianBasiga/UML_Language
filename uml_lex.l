@@ -33,12 +33,13 @@ void assignToSymbol(){
 class|interface		{assignToString(); return STRUCTURE;}
 int|float|string	{assignToString(); return DATA_TYPE;}
 abstract|static		{assignToString(); return META_TYPE;}
-create|print		{assignToString(); return COMMAND;}
+create|delete|print		{assignToString(); return COMMAND;}
 all|parents|children	{assignToString(); return PRINT_SPECIFICATION;}
 [a-zA-Z]+[a-zA-Z0-9]*	{assignToString(); return IDENTIFIER;}
 \+|-|\*			{assignToChar(); return ACCESS;}
 \^|>			{assignToChar(); return RELATION;}
 [ \t]	;
+\n			return yytext[0];
 	
 
 
