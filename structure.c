@@ -29,20 +29,7 @@ structure* getStructure(structure_trie* root, char* structureName){
 
 
 	
-	//In future prob copy it instead, cause deleting will be issue.
-	//Now main question, how do I iterate through all of the trie?
-	//Like yeah DFS, but what am I using for input?
-	//Less and less is using trie an actual good idea.
-	//Yeah, I would have to fucking store the keys themselves.
-	//I mean guess fine, for most purposes other than getting everything is still O(26)
-	//but when get everything will be O(n*26); So along with this a linked list.
-	//then only add to link list of successful insert.
 	structure* retrieved = NULL;
-
-
-
-	printf("Structure name looking for %s\n", structureName);
-	printf("root passing in %p\n", root);
 	existUtil(root, structureName, 0, &retrieved);
 
 
@@ -119,14 +106,10 @@ int existUtil(structure_trie* currentNode, char* name, int index, structure** fo
 		puts("here?");
 		return 0;
 	}
-	//Then make sure children aren't NULL.
 
 	char next = name[index];	
 	structure_trie* nextChild = currentNode->children[next-97];
 
 	printf("Looking at character %c, next child is %p\n", next, nextChild);
-	//ooo, wait but also allows numbers, so maybe not trie?
-	//need to rethink structure for this
-	//I mean for structures unlikely that includes numbers though honestly.
 	return existUtil(nextChild, name, index + 1, foundNode);	
 }

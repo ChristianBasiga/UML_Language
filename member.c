@@ -1,0 +1,229 @@
+#include "member.h"
+#include <string.h>
+#include <stdlib.h>
+
+
+member* getMemberNode(char* name){
+
+	member* newNode = (member*)malloc(sizeof(member));
+	newNode->left = NULL;
+	newNode->right = NULL;
+	newNode->name = (char*)malloc(strlen(name));
+
+	strcpy(newNode->name, name);
+
+
+	return newNode;
+}
+
+memberLL*  getToTail(memberLL* ll){
+
+	memberLL* current = ll;
+	while (current->next != NULL){
+
+		current = current->next;
+	
+	}
+	return current;
+
+}
+void dfsMembers(member* root, memberLL* ll){
+
+
+	if (root == NULL){
+
+		return;
+	}
+
+	memberLL* llNode = (memberLL*)malloc(sizeof(memberLL));
+
+	llNode->data = root;
+
+	//Better if I just make my own stack instead of doign recursively
+	//cause of extra need to go all the way to tail each time.
+	
+	//But then how do I set it for rest.
+	ll->next = llNode;	
+
+
+	//Getting tail is extra iterations not needed
+	///will make stack later to replace
+
+	memberLL* tail = getToTail(ll);
+	dfsMembers(root->left, tail);
+
+	tail = getToTail(ll);
+	dfsMembers(root->right, tail);
+
+
+}
+memberLL* getMembers(structure* s){
+	
+	//Head for this has no actual data.
+	memberLL* ll = (memberLL*)malloc(sizeof(memberLL));
+
+	
+		
+	member* root = s->members;
+
+	dfsMembers(root, ll);
+	
+
+	return ll->next;
+}
+
+
+
+int memberExists(structure* s, char* memberName){
+
+
+	return memberExistsUtil(s->members, memberName);
+}
+
+
+
+int memberExistsUtil(member* current, char* memberName){
+
+
+	if (current == NULL){
+
+		return 0;
+	}
+
+	int comparison = strcmp(memberName, current);
+
+	if (comparison == 0){
+
+		return 1;
+	}
+	else if (comparison < 0){
+
+		return memberExistsUtil(current->left, memberName);
+	}
+	else{
+		return memberExistsUtil(current->right, memberName);
+	}
+
+
+}	
+
+
+
+int addMember(structure* s, member* memberToAdd){
+
+	if (s->members == NULL){
+		s->members = memberToAdd;
+		return 1;
+	}
+	else
+		return addMemberUtil(s->members, memberToAdd);
+}
+
+//Need to also remove, good for demo purposes.
+//remove instead of create. but same everything else.
+
+
+int removeMember(structure* s, member* memberToRemove){
+
+
+	if (s->members == NULL){
+
+		return 0;
+	}
+	else{
+
+		return removeMemberUtil(s->members, memberToRemove);
+	}
+
+}
+
+int removeMemberUtil(member* current, member* memberToRemove){
+
+	if (current == NULL){
+
+
+		return 0;
+	}
+
+	char* memberName = memberToRemove->name;
+
+	int comparison = strcmp(memberName, current->name);
+	int found;
+
+	if (comparison == 0){
+
+		//found it.
+		return 1;
+	}
+	else if (comparison < 0 ){
+
+
+
+		found = removeMemberUtil(current->left, memberToRemove);
+
+		if (found == 1){
+
+
+			current->left = NULL;
+			return 2;
+		}
+
+	}
+	else{
+		found = removeMemberUtil(current->right, memberToRemove);
+
+		if (found == 1){
+
+			current->right = NULL;
+			return 1;
+		}
+
+	}
+}
+
+
+int addMemberUtil(member* current, member* memberToAdd){
+
+
+
+	if (current == NULL){
+
+
+		return 0;
+	}
+
+	char* memberName = memberToAdd->name;
+	
+	int comparison = strcmp(memberName, current->name);
+
+	if (comparison == 0){
+
+		//Already existed
+		return 0;
+	}
+	else if (comparison < 0){
+
+		if (current->left == NULL){
+
+			current->left = memberToAdd;
+			return 1;
+		}
+		else{
+			return memberExistsUtil(current->left, memberName);
+		}
+
+	}
+	else{
+
+		if (current->right == NULL){
+
+			current->right = memberToAdd;
+			return 1;
+		}
+		else{
+			return memberExistsUtil(current->right, memberName);
+		}
+	}
+
+
+}	

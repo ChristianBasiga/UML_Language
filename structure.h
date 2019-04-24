@@ -5,7 +5,10 @@
 
 //Could prob move this stuff around.
 
+
+//Instead of enum should've just kept as string, SO MUCH easier to deal with.
 typedef enum structureType { CLASS, INTERFACE} structureType;
+
 typedef struct member member;
 typedef struct structure{
 

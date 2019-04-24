@@ -17,13 +17,21 @@ typedef struct member{
 	memberType mt;
 } member;
 
+//LL really just a stack, if I keep reference to tail
+typedef struct memberLL{
+
+	struct memberLL* next;
+	struct memberLL* prev;
+	member* data;
+
+} memberLL;
 
 
-//Traversing member identifiers per structure.
-//Structure instead of structure name to avoid circular dependancy.
-//I mean having it still makes it require lmao.
+
 int memberExists(structure* s, char* memberName);
 int addMember(structure* s, member* memberToAdd);
 member* getMemberNode(char* name);
+
+memberLL* getMembers(structure* s);
 
 #endif
