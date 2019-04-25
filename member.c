@@ -130,10 +130,47 @@ int removeMember(structure* s, member* memberToRemove){
 
 		return 0;
 	}
-	else{
+	
 
-		return removeMemberUtil(s->members, memberToRemove);
+	member* root = s->members;
+
+	//If match root.
+	if (strcmp(memberToRemove->name, root->name) == 0){
+
+
+		//Check left and right to set new root.
+
+		member* temp = NULL;
+		if (root->left != NULL){
+
+			temp = root->left;
+
+		}
+
+		if (root->right != NULL){
+
+			
+			//if left also active make it new root and attack righ to it.
+			if (temp != NULL){
+
+				temp->right = root->right;
+			}
+			else{
+				temp = root->right;
+			}
+
+
+
+		}
+
+		//Then if had no children it is now NULL
+		s->members = temp;
+		return 1;
+
 	}
+
+	return removeMemberUtil(s->members, memberToRemove);
+	
 
 }
 
@@ -149,6 +186,8 @@ int removeMemberUtil(member* current, member* memberToRemove){
 
 	int comparison = strcmp(memberName, current->name);
 	int found;
+
+	//Will do this differently.
 
 	if (comparison == 0){
 
@@ -171,7 +210,7 @@ int removeMemberUtil(member* current, member* memberToRemove){
 	}
 	else{
 		found = removeMemberUtil(current->right, memberToRemove);
-
+		
 		if (found == 1){
 
 			current->right = NULL;

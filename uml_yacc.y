@@ -235,7 +235,6 @@ command:
 			IdentifierNode* current = $2;
 
 			while (current != NULL){
-				puts("Here?");
 				printStructure(current->identifier,$3);
 				current = current->next;
 			}
@@ -259,10 +258,10 @@ command:
 			int deleted = 0;
 			//If delete, then process what identifiers are.
 
+			printf("structure identifier is %s\n", $4);
 			//Checking if last operand is structure.
 			int isStructure = structureExists(sTrie, $4);
 
-	
 			if (isStructure){
 		
 				//Then here iterate through rest.

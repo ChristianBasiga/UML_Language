@@ -39,9 +39,5 @@ all|parents|children	{assignToString(); return PRINT_SPECIFICATION;}
 \+|-|\*			{assignToChar(); return ACCESS;}
 \^|>			{assignToChar(); return RELATION;}
 [ \t]	;
-\n			return yytext[0];
-	
-
-
 %%
 

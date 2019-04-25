@@ -21,7 +21,7 @@ structure_trie* getNode(){
 
 
 int structureExists(structure_trie* root, char* structureName){
-	return existUtil(root, structureName[0], 0, NULL);
+	return existUtil(root, structureName, 0, NULL);
 }
 
 
@@ -63,7 +63,9 @@ int addStructureUtil(structure_trie* currentNode, char* structureName, int index
 
 
 	char next = structureName[index];
-		
+	
+	//May turn this to use bst as well actually
+	//in hindsight.	
 	structure_trie** nextChild = &currentNode->children[next - 97];
 	
 	
@@ -82,7 +84,7 @@ int addStructureUtil(structure_trie* currentNode, char* structureName, int index
 int existUtil(structure_trie* currentNode, char* name, int index, structure** foundNode){
 
 
-
+	printf("%p\n", name);
 
 	//base case out of input.
 	if (index >= strlen(name)){
@@ -92,9 +94,11 @@ int existUtil(structure_trie* currentNode, char* name, int index, structure** fo
 		if (currentNode != NULL){
 
 
+
 			printf("Found node %s\n", currentNode->data->name);
-			*foundNode = currentNode->data;
-			
+			if (foundNode != NULL){
+				*foundNode = currentNode->data;
+			}
 			return 1;
 		}
 
@@ -103,9 +107,9 @@ int existUtil(structure_trie* currentNode, char* name, int index, structure** fo
 	if (currentNode == NULL){
 
 		
-		puts("here?");
 		return 0;
 	}
+
 
 	char next = name[index];	
 	structure_trie* nextChild = currentNode->children[next-97];
