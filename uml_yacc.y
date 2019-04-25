@@ -152,7 +152,7 @@ main(){
 	char* string;
 	char symbol[2];
 	char character;
-
+	struct IdentNode* identifiers;
 };
 
 %token <string> IDENTIFIER;
@@ -163,10 +163,11 @@ main(){
 %token <string> PRINT_SPECIFICATION;
 %token <character> ACCESS;
 %token <symbol> RELATION; 
-
 %type <string> data_type;
 %type <string> meta_data;
 %type <string> print_format;
+%type <identifiers> identifier_list;
+
 %%
 
 
@@ -175,10 +176,9 @@ same as allowing multiple meta_data specifications, was overthinking this*/
 program:
        |
        program command 
-       ;
-
+	;
 command:
-      	COMMAND meta_data STRUCTURE IDENTIFIER '\n'
+      	COMMAND meta_data STRUCTURE IDENTIFIER 
 	{
 
 		if (strcmp($1, "create") != 0){
@@ -198,7 +198,7 @@ command:
 		}
 	}
 	|
-	COMMAND meta_data ACCESS data_type IDENTIFIER RELATION IDENTIFIER '\n'
+	COMMAND meta_data ACCESS data_type IDENTIFIER RELATION IDENTIFIER 
 	{
 		//Add update here too
 		if (strcmp($1, "create") != 0){
@@ -214,15 +214,32 @@ command:
 		}
 	}
 	|
-	/*thought having the statement terminator would fix it, but I guess not */
-	COMMAND print_format IDENTIFIER '\n'
+	/*So for some reason identifier_list no longer being processed? or rather turns to identifier_list*/
+	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
-		//Need to rethink grammar.
 
-		printf("Here?\n");
+
+		//it should look ahead and notice print specification though and not reduce to below rule or shift towards it.
+
+	
+		/*Todo, make work with identifier list*/
+		/*Make work with optioal print_options without conflict*/
+	
+		//NOT TOO IMPORTANT I GUESS.
+
+		printf("[%p]\n", $2);
+
 		if (strcmp($1,"print") == 0){
 
-			printStructure($3,$2);
+			
+			IdentifierNode* current = $2;
+
+			while (current != NULL){
+				puts("Here?");
+				printStructure(current->identifier,$3);
+				current = current->next;
+			}
+			
 			//Accept this as valid syntax, then keep going, untl not accept
 		}
 		else{
@@ -232,15 +249,11 @@ command:
 	}
 	|	
 	/*Issue is it chooses to shift this to try to match it, that's why need the null terminator*/
-	COMMAND IDENTIFIER RELATION IDENTIFIER '\n' 
+	/*Can I use this as printing? like instead of print all/children/parents. print a > b? that's wierd.*/
+	/*Need to really ifgure this shit out.*/
+	COMMAND identifier_list RELATION IDENTIFIER 
 	{
 	
-	/*TODO: figure out order of operations of stuff as needed, I mean right now just basic values but
-	//if I were to make this more interesting with precedance, like removing should be done before adding or something like that
-	//maybe sub commands? like instead of print like a get all classes or get class, <identifier>,...<identifier_i> then add a member to each one.
-	//that would be good. For now get all basic functionality done, then work on sub commands. core my home, work that core.
-		//Then depending on relation and command do stuff accordingly.
-*/
 		if (strcmp($1, "delete") == 0){
 
 			int deleted = 0;
@@ -249,11 +262,12 @@ command:
 			//Checking if last operand is structure.
 			int isStructure = structureExists(sTrie, $4);
 
-
+	
 			if (isStructure){
-
-				
-				isStructure = structureExists(sTrie, $2);
+		
+				//Then here iterate through rest.
+				char* other = $2->identifier;		
+				isStructure = structureExists(sTrie, other);
 
 				if (isStructure){
 
@@ -264,15 +278,15 @@ command:
 				else{
 
 					//Otherwise assume is member > structure, and try to delete.
-					deleted = deleteMemberFromStructure($4, $2);
+					deleted = deleteMemberFromStructure($4, other);
 					if (deleted){
 
-						printf("Deleted member %s from %s\n", $2, $4);
+						printf("Deleted member %s from %s\n", other, $4);
 					}
 					else{
 					
 						//in future print error for now means didn't exist.
-						printf("member %s does not exist in %s\n", $2, $4);
+						printf("member %s does not exist in %s\n", other, $4);
 					}
 				}
 			}
@@ -288,7 +302,7 @@ command:
 
 	}
 	|
-	IDENTIFIER RELATION IDENTIFIER '\n'
+	IDENTIFIER RELATION IDENTIFIER 
 	{
 		//Both identifiers here must refer to structure.
 	}
@@ -311,7 +325,36 @@ data_type:
 print_format:
 	    |
 	print_format PRINT_SPECIFICATION 
-     	; 
+     	;
+identifier_list:
+	       {$$ = NULL;}
+	      |
+	 identifier_list IDENTIFIER
+	{
+
+		if ($1 == NULL){
+
+			IdentifierNode* newNode = (IdentifierNode*)malloc(sizeof(IdentifierNode));
+
+			newNode->identifier = $2;
+			$$ = newNode;
+		}
+		else{
+
+
+			
+			IdentifierNode* newNode = (IdentifierNode*)malloc(sizeof(IdentifierNode));
+			newNode->identifier = $2;
+
+			$1->next = newNode;
+
+			$$ = $1;
+			
+		}
+		//result should be concat of all identifiers
+		
+	}
+	;
 %%
 
 
