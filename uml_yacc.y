@@ -28,6 +28,8 @@ int printStructure(char* structureName, char* options){
 
 	structure* s = getStructure(sTrie, structureName);
 
+
+	if (s == NULL) return 0;
 	//Okay, so now how to print it.
 	//let's say just basic one first.
 
@@ -104,6 +106,12 @@ int addMemberToStructure(char* structureName, char* memberName, char* data_type,
 
 
 
+int deleteAStructure(char* structureName){
+
+
+	//Are overloads not a thing I guess thats why did it.
+	return deleteStructure(sTrie, structureName);
+}
 
 int deleteMemberFromStructure(char* structureName, char* memberName){
 
@@ -214,18 +222,10 @@ command:
 		}
 	}
 	|
-	/*So for some reason identifier_list no longer being processed? or rather turns to identifier_list*/
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
 
 
-		//it should look ahead and notice print specification though and not reduce to below rule or shift towards it.
-
-	
-		/*Todo, make work with identifier list*/
-		/*Make work with optioal print_options without conflict*/
-	
-		//NOT TOO IMPORTANT I GUESS.
 
 		printf("[%p]\n", $2);
 
@@ -246,10 +246,38 @@ command:
 			YYABORT;
 		}
 	}
-	|	
-	/*Issue is it chooses to shift this to try to match it, that's why need the null terminator*/
-	/*Can I use this as printing? like instead of print all/children/parents. print a > b? that's wierd.*/
-	/*Need to really ifgure this shit out.*/
+	|
+	/*Another issue, deleting structures, cause now shift reduce will happen, need something to represent end of it*/
+	COMMAND identifier_list
+	{
+
+		if (strcmp($1, "delete") == 0){
+
+			//Delete each one in identifier list.
+
+			IdentifierNode* current = $2;
+
+			while (current != NULL){
+
+				int deleted = deleteAStructure(current->identifier);
+				if (deleted){
+
+
+					printf("Successfully deleted %s\n", current->identifier);
+				}
+				else{
+
+					printf("Failed to delete %s\n", current->identifier);
+					
+				}
+				current = current->next;
+			}
+			
+		}
+		
+	}
+	|
+	/*Deleting relationships and members from structures*/	
 	COMMAND identifier_list RELATION IDENTIFIER 
 	{
 	
@@ -290,15 +318,8 @@ command:
 				}
 			}
 			
-
-			//ambigiouity may occur.
-
-
-			//Could be any relation and any identifier
-			//ie: class to class and member to class, delete member from class. remove relationship of class to class.
 		}
 		
-
 	}
 	|
 	IDENTIFIER RELATION IDENTIFIER 

@@ -1,7 +1,67 @@
 #include "structure.h"
 #include <stdlib.h>
+#include <string.h>
 
 
+int deleteStructure(structure_trie* root, char* structureName){
+
+
+	//Get structure.
+	
+	//Will delete all members
+	//I could delete each one individually, but will cause alot of repition.
+
+
+
+	//Start negative 1 to take into account case of 1 length and 2 length strings
+	return deleteUtil(root, structureName, -1);	
+
+	//Need to remove from trie.
+
+}
+
+int deleteUtil(structure_trie* root, char* structureName, int index){
+
+
+	//Keep going until next child doesn't exist or exist at last character.
+	
+
+	//stop at character before last.
+	if (index == strlen(structureName) - 2){
+
+		//Gets next child
+		int next = structureName[index + 1];
+
+		//only structures lower case right now
+		//rework trie later
+		structure_trie* nextChild = root->children[next - 97];
+
+		//didn't exist.
+		if (nextChild == NULL){
+
+			return 0;
+		}
+		else{
+
+			//First must do post order to delete members.
+			//
+			//otherwise delete it.
+			deleteAllMembers(nextChild);
+			//Since making NULL full pointer this step isn't needed.
+			free(nextChild);
+			root->children[next-97] = NULL;
+			return 1;
+		}
+	}
+	else{
+		
+		deleteUtil(root, structureName, index + 1);
+
+	}
+
+
+
+}
 
 
 structure_trie* getNode(){
@@ -89,11 +149,12 @@ int existUtil(structure_trie* currentNode, char* name, int index, structure** fo
 	//base case out of input.
 	if (index >= strlen(name)){
 
-			
+		puts("I happen");		
 		//Check if current node  has content, then exists.
 		if (currentNode != NULL){
 
 
+			puts("But i do not");
 
 			printf("Found node %s\n", currentNode->data->name);
 			if (foundNode != NULL){
@@ -113,7 +174,8 @@ int existUtil(structure_trie* currentNode, char* name, int index, structure** fo
 
 	char next = name[index];	
 	structure_trie* nextChild = currentNode->children[next-97];
-
+	
+	
 	printf("Looking at character %c, next child is %p\n", next, nextChild);
 	return existUtil(nextChild, name, index + 1, foundNode);	
 }

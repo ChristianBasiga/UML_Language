@@ -90,7 +90,7 @@ int memberExistsUtil(member* current, char* memberName){
 		return 0;
 	}
 
-	int comparison = strcmp(memberName, current);
+	int comparison = strcmp(memberName, current->name);
 
 	if (comparison == 0){
 
@@ -122,6 +122,21 @@ int addMember(structure* s, member* memberToAdd){
 //Need to also remove, good for demo purposes.
 //remove instead of create. but same everything else.
 
+int deleteAllMembers(structure* s){
+
+
+	deleteAllUtil(s->members);
+	s->members = NULL;	
+}
+
+void deleteAllUtil(member* root){
+
+	if (root == NULL) return;
+
+	deleteAllUtil(root->left);
+	deleteAllUtil(root->right);
+	free(root);
+}
 
 int removeMember(structure* s, member* memberToRemove){
 
@@ -163,6 +178,8 @@ int removeMember(structure* s, member* memberToRemove){
 
 		}
 
+		free(root);
+
 		//Then if had no children it is now NULL
 		s->members = temp;
 		return 1;
@@ -202,7 +219,7 @@ int removeMemberUtil(member* current, member* memberToRemove){
 
 		if (found == 1){
 
-
+			free(current->left);
 			current->left = NULL;
 			return 2;
 		}
@@ -213,6 +230,7 @@ int removeMemberUtil(member* current, member* memberToRemove){
 		
 		if (found == 1){
 
+			free(current->right);
 			current->right = NULL;
 			return 1;
 		}

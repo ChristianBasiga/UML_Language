@@ -30,6 +30,7 @@ typedef struct memberLL{
 
 int memberExists(structure* s, char* memberName);
 int addMember(structure* s, member* memberToAdd);
+int deleteAllMembers(structure* s);
 member* getMemberNode(char* name);
 
 memberLL* getMembers(structure* s);

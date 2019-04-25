@@ -1,0 +1,8 @@
+create class a
+print a all
+delete a
+print a all
+
+
+
+

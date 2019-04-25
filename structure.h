@@ -33,6 +33,7 @@ typedef struct structure_trie{
 
 structure_trie* getNode();
 int structureExists(structure_trie* root, char* structureName);
+int deleteStructure(structure_trie* root, char* structureName);
 int addStructure(structure_trie* root, char* structureName, structure* s);
 structure* getStructure(structure_trie* root, char* structureName);
 
