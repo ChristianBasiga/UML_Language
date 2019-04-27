@@ -8,8 +8,18 @@
 
 //Instead of enum should've just kept as string, SO MUCH easier to deal with.
 typedef enum structureType { CLASS, INTERFACE} structureType;
+//In hindsight the parents structure type determines relationship type ie: implements or inherits, atleast for code.
+//but maybe also have stuff like decorates, aggregation, composition, etc more specific stuff.
+//not sure how I would even decorate vs adaptation in terms of just declaring with no implementation, too specific.
+
+
+
+
 
 typedef struct member member;
+
+//Actually should relationships be in here? Or own separate struct, and structure just has stuff structure needs
+//and is then used
 typedef struct structure{
 
 	member* members;
@@ -19,9 +29,15 @@ typedef struct structure{
 	
 } structure;
 
+//Along with identifier, need type of relationship has to structure to generate correct code.
+
 
 typedef struct structure_trie{
 
+	//Change this to include lower and upper case as well as numbers
+	//basically would have to remove array way instead
+	//and either have trie of linked lists as children or change this
+	//to BST.
 	struct structure_trie *children[26];
 	structure* data;
 

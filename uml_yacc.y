@@ -247,7 +247,6 @@ command:
 		}
 	}
 	|
-	/*Another issue, deleting structures, cause now shift reduce will happen, need something to represent end of it*/
 	COMMAND identifier_list
 	{
 
@@ -280,7 +279,9 @@ command:
 	/*Deleting relationships and members from structures*/	
 	COMMAND identifier_list RELATION IDENTIFIER 
 	{
-	
+
+		//When deleting structures need to consider the relationships structure has with other structures
+		//composition already has member stuff, inheritance not set up yet.	
 		if (strcmp($1, "delete") == 0){
 
 			int deleted = 0;
