@@ -23,7 +23,7 @@ typedef struct IdentNode{
 int yydebug = 1;
 
 structure_trie* sTrie;
-
+relationship* relationshipGraph;
 int printStructure(char* structureName, char* options){
 
 	structure* s = getStructure(sTrie, structureName);
@@ -73,12 +73,23 @@ int createStructure(char* structureName, char* type){
 	
 	}
 
+	//Add to graph as node.
 	s->type = stype;
 
 
 	//Okay, cool seg fault.
 	int added = addStructure(sTrie, structureName, s);
 	
+	if (added){
+		if (relationshipGraph == NULL){
+			relationshipGraph = getRelationship(s->name);
+		}
+		else{
+
+			addToGraph(relationshipGraph, toAdd);
+		}
+	}
+
 	return added;
 
 }
@@ -132,6 +143,25 @@ int deleteMemberFromStructure(char* structureName, char* memberName){
 
 }
 
+int addStructureRelation(char* from, char* to, char* type){
+
+
+	//Get relationship type, again, so much easier if make const strings
+	//but comparison longer.
+	relationship_type rType = parseType(type);
+
+
+	return addRelationship(relationshipGraph, from, to, rType);
+}
+
+int removeStructureRelation(char* from, char* to, char* type){
+
+	relationship_type rType = parseType(type);
+
+	return removeRelationship(relationshipGraph, from, to, rType);
+
+}
+
 void yyerror(const char* err){
 
 
@@ -147,6 +177,7 @@ int yywrap(){
 main(){
 
 	sTrie = getNode();
+	relationshipGraph = NULL;
 	yyparse();
 }
 
@@ -293,17 +324,18 @@ command:
 
 			if (isStructure){
 		
+
+				IdentifierNode* current = $2;
+
+				while (current != NULL){
 				//Then here iterate through rest.
-				char* other = $2->identifier;		
-				isStructure = structureExists(sTrie, other);
+					char* other = current->identifier;	
+				//But what if it is both a structure and a member.
+				//ambigiouity in functionality and syntax here,
+				//need to rethink syntax and grammar
 
-				if (isStructure){
-
-					//Then pass in relation to structure symbol table of function pointers
-					//need to look into function pointers in C again.
-					
-				}
-				else{
+				//instead of checking isStructure, should check if member exists within structure
+				//for each one
 
 					//Otherwise assume is member > structure, and try to delete.
 					deleted = deleteMemberFromStructure($4, other);
@@ -316,16 +348,26 @@ command:
 						//in future print error for now means didn't exist.
 						printf("member %s does not exist in %s\n", other, $4);
 					}
+					
+					current = current->next;
 				}
+			}
+			else{
+
+				printf("Fourth argument must be structure\n");
+				YYABORT;
 			}
 			
 		}
+	
 		
 	}
 	|
 	IDENTIFIER RELATION IDENTIFIER 
 	{
 		//Both identifiers here must refer to structure.
+
+	
 	}
 	;
 
@@ -340,6 +382,14 @@ data_type:
 	IDENTIFIER
 	{
 		//Makes sure identifier exists and is of a type.
+		int isStructure = structureExists($1);
+
+		if (isStructure){
+			$$ = $1;
+		} 
+		else{
+			printf("%s is not a defined structure nor a built in type\n", $1);
+		}
 	}
 	;
 

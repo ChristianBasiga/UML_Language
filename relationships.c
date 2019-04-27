@@ -1,6 +1,50 @@
 #include "relationships.h"
 #include <string.h>
 
+
+
+relationship_type parseType(char* type){
+
+	relationship_type rType = INHERITS;
+
+	if (strcmp(type,"aggregation") == 0){
+		rType = AGGREGATION;
+	}
+	else if (strcmp(type,"composition") == 0){
+
+		rType = COMPOSITION;
+	}
+
+	return rType;
+
+}
+relationship*  getRelationship(char* identifier){
+
+	relationship* newRelationship = (relationship*)malloc(sizeof(relationship));
+
+	//Could copy it, but they really all pointing to same identifier
+	//if any turns to garbage, all should be gone.
+	newRelationship->identifier = identifier;
+
+
+	return newRelationship;
+
+}
+
+int addToGraph(relationship* root, relationship* toAdd){
+
+
+	relationship* current = root;
+
+	while (current->next != NULL){
+		current = current->next;
+	}	
+
+	current->next = toAdd;
+	return 1;
+
+}
+
 int addRelationship(relationship* root, char* from, char* to, relationship_type type){
 
 

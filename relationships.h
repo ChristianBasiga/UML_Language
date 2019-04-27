@@ -44,7 +44,9 @@ typedef struct relationship{
 
 
 
-
+relationship* getRelationship(char* identifier);
+relationship_type parseType(char* type);
+int addToGraph(relationship* root, relationship* toAdd);
 int addRelationship(relationship* root, char* from, char* to, relationship_type type);
 //Need type in removal too as multiple relationships can be made.
 int removeRelationship(relationship* root, char* from, char* to, relationship_type type);
