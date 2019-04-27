@@ -316,6 +316,8 @@ command:
 	//reduce reduce fine it will default to this,
 	//but latter, hmm, specifically uml? Cause I mean that's true.*/
 	/*I could make UML nullable, then only if it's not NULL do other one*/
+	/*Not a good fix, cause not always want to do UML to create that relationship right?*/
+	/*Checking relation may actually be better*/
 	COMMAND UML identifier_list RELATION IDENTIFIER 
 	{
 		puts("here?");
