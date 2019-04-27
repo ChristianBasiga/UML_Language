@@ -69,7 +69,7 @@ int addRelationship(relationship* root, char* from, char* to, relationship_type 
 		if (comparison == 0){
 
 			//If found from, now add the to.
-			connection* newConnection = (connections*)malloc(sizeof(connections));
+			connection* newConnection = (connection*)malloc(sizeof(connection));
 			newConnection->type = type;
 			newConnection->identifier = (char*)malloc(strlen(to));
 			strcpy(newConnection->identifier, to);

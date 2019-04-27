@@ -4,6 +4,7 @@
 #include <string.h>
 #include "structure.h"
 #include "member.h"
+#include "relationships.h"
 //Will convert below to C++ likely instead of C, much easier to work with.
 //Will store identifiers in bst or trie. To reuse characters, I will build a trie instead
 //for now static 26.
@@ -81,12 +82,14 @@ int createStructure(char* structureName, char* type){
 	int added = addStructure(sTrie, structureName, s);
 	
 	if (added){
+
+		relationship* r = getRelationship(s->name);
 		if (relationshipGraph == NULL){
-			relationshipGraph = getRelationship(s->name);
+			relationshipGraph = r;
 		}
 		else{
 
-			addToGraph(relationshipGraph, toAdd);
+			addToGraph(relationshipGraph, r);
 		}
 	}
 
@@ -194,6 +197,7 @@ main(){
 	struct IdentNode* identifiers;
 };
 
+%token <character> UML;
 %token <string> IDENTIFIER;
 %token <string> COMMAND;
 %token <string> META_TYPE;
@@ -307,7 +311,48 @@ command:
 		
 	}
 	|
+	
+	/*reduce reduce folowed by shift reduce may happen.
+	//reduce reduce fine it will default to this,
+	//but latter, hmm, specifically uml? Cause I mean that's true.*/
+	/*I could make UML nullable, then only if it's not NULL do other one*/
+	COMMAND UML identifier_list RELATION IDENTIFIER 
+	{
+		puts("here?");
+		//Both identifiers here must refer to structure.
+		//Same as below, use symbol table with command bst with nodes of function pointers.
+		//Much cleaner than if else ifs
+		if (strcmp($1, "create") == 0){
+
+			//UGH, so creating allow, but not deleting for that
+
+			
+			IdentifierNode* current = $3;
+
+			while (current != NULL){
+				int added = addStructureRelation(current, $5, $3);
+				current = current->next;
+			}
+		
+			
+
+			
+		}
+		//but for quick testing else ifs fine.
+		else if (strcmp($1, "delete") == 0){
+			
+			IdentifierNode* current = $3;
+
+			while (current != NULL){
+				int deleted = removeStructureRelation(current, $5, $3);
+				current = current->next;
+			}
+		}	
+			
+	}
+	|
 	/*Deleting relationships and members from structures*/	
+	/*this rule should suffice but the distinction would have to made with value of relation token.*/
 	COMMAND identifier_list RELATION IDENTIFIER 
 	{
 
@@ -323,7 +368,9 @@ command:
 			int isStructure = structureExists(sTrie, $4);
 
 			if (isStructure){
-		
+	
+
+					
 
 				IdentifierNode* current = $2;
 
@@ -336,7 +383,7 @@ command:
 
 				//instead of checking isStructure, should check if member exists within structure
 				//for each one
-
+					
 					//Otherwise assume is member > structure, and try to delete.
 					deleted = deleteMemberFromStructure($4, other);
 					if (deleted){
@@ -362,13 +409,7 @@ command:
 	
 		
 	}
-	|
-	IDENTIFIER RELATION IDENTIFIER 
-	{
-		//Both identifiers here must refer to structure.
-
 	
-	}
 	;
 
 
@@ -382,7 +423,7 @@ data_type:
 	IDENTIFIER
 	{
 		//Makes sure identifier exists and is of a type.
-		int isStructure = structureExists($1);
+		int isStructure = structureExists(sTrie,$1);
 
 		if (isStructure){
 			$$ = $1;
