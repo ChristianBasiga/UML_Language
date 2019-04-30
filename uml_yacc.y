@@ -25,6 +25,7 @@ int yydebug = 1;
 
 structure_trie* sTrie;
 relationship* relationshipGraph;
+
 int printStructure(char* structureName, char* options){
 
 	structure* s = getStructure(sTrie, structureName);
@@ -35,6 +36,7 @@ int printStructure(char* structureName, char* options){
 	//let's say just basic one first.
 
 	//Instead of enum prob better just to keep as same time, honestly.
+	
 
 	char* structureTypeName = "class";
 
@@ -42,9 +44,29 @@ int printStructure(char* structureName, char* options){
 		structureTypeName = "interface";
 	}
 
-
+	//Need to iterate through rlationship graph
+	connection* connections = getConnections(relationshipGraph, structureName);
 
 	printf("%s %s\n", structureTypeName, structureName);
+	
+	connection* currentConnection = connections;
+
+	if (connections != NULL){
+
+		puts("Printing relations");
+	}
+	
+	while (currentConnection != NULL){
+
+		char* typeString = typeToString(currentConnection->type);
+		if (typeString == NULL) puts("failed to parse type to string");
+		printf("%s [%s]", typeString, currentConnection->identifier);
+		currentConnection = currentConnection->next;
+		free(typeString);
+	}
+		
+	//Todo: Iterate through graph and display parents and children
+
 	memberLL* members = getMembers(s);
 
 	memberLL* current = members;
@@ -54,7 +76,6 @@ int printStructure(char* structureName, char* options){
 		
 		printf("looking at member %s %s\n", current->data->type,  current->data->name);
 		current = current->next;
-
 	}
 
 	
@@ -80,16 +101,21 @@ int createStructure(char* structureName, char* type){
 
 	//Okay, cool seg fault.
 	int added = addStructure(sTrie, structureName, s);
-	
 	if (added){
-
+	
+		puts("here atleast?");
 		relationship* r = getRelationship(s->name);
 		if (relationshipGraph == NULL){
+			printf("initialized graph\n");
 			relationshipGraph = r;
 		}
 		else{
+			
+			int addedToGraph = addToGraph(relationshipGraph, r);
+			if (addedToGraph){
 
-			addToGraph(relationshipGraph, r);
+				printf("added new structure to graph\n");
+			}
 		}
 	}
 
@@ -318,6 +344,7 @@ command:
 	/*I could make UML nullable, then only if it's not NULL do other one*/
 	/*Not a good fix, cause not always want to do UML to create that relationship right?*/
 	/*Checking relation may actually be better*/
+	
 	COMMAND UML identifier_list RELATION IDENTIFIER 
 	{
 		puts("here?");
@@ -358,6 +385,33 @@ command:
 	COMMAND identifier_list RELATION IDENTIFIER 
 	{
 
+		//Then inheritance, granted grammar prob so not doing strcmp stuff like this
+		if ($3[0] == '^'){
+
+			//Create relationship
+			//Only if both structures.
+			int isStructure = structureExists(sTrie, $4);
+			puts("here");
+			if (!isStructure){
+
+				puts("Can only inherit from a structure");
+				YYABORT;
+			}
+
+			//Then do same check for each in identifier list
+			
+			int added = addStructureRelation($2->identifier, $4, $3);
+
+			if (added){
+
+				puts("Relation made");
+			}
+			else{
+				puts("Failed to make relation");
+				YYABORT;
+			}
+		}
+		
 		//When deleting structures need to consider the relationships structure has with other structures
 		//composition already has member stuff, inheritance not set up yet.	
 		if (strcmp($1, "delete") == 0){

@@ -18,6 +18,43 @@ relationship_type parseType(char* type){
 	return rType;
 
 }
+
+char* typeToString(relationship_type type){
+
+	char* parsed = NULL;
+	if (type == INHERITS){
+	
+		char inherits[] = "inherits";
+		parsed = (char*)malloc(strlen(inherits));
+		strcpy(parsed,inherits);
+	}
+
+	return parsed;
+
+}
+
+connection* getConnections(relationship* graph, char *identifier){
+
+
+	relationship* current = graph;
+
+	int matched = 0;
+	while (current!= NULL){
+
+		int matched = strcmp(identifier, current->identifier) == 0;
+		if (matched) {
+			
+			return current->connections;
+		}
+		current = current->next;
+
+	}
+
+	return NULL;
+
+
+}
+
 relationship*  getRelationship(char* identifier){
 
 	relationship* newRelationship = (relationship*)malloc(sizeof(relationship));
@@ -25,7 +62,7 @@ relationship*  getRelationship(char* identifier){
 	//Could copy it, but they really all pointing to same identifier
 	//if any turns to garbage, all should be gone.
 	newRelationship->identifier = identifier;
-
+	newRelationship->connections = NULL;
 
 	return newRelationship;
 
@@ -43,6 +80,17 @@ int addToGraph(relationship* root, relationship* toAdd){
 	current->next = toAdd;
 	return 1;
 
+}
+
+connection* makeConnection(char* to, relationship_type type){
+
+	connection* newConnection = (connection*)malloc(sizeof(connection));
+	newConnection->type = type;		
+	newConnection->identifier = (char*)malloc(strlen(to));
+	newConnection->next = NULL;
+	strcpy(newConnection->identifier, to);
+
+	return newConnection;
 }
 
 int addRelationship(relationship* root, char* from, char* to, relationship_type type){
@@ -69,17 +117,14 @@ int addRelationship(relationship* root, char* from, char* to, relationship_type 
 		if (comparison == 0){
 
 			//If found from, now add the to.
-			connection* newConnection = (connection*)malloc(sizeof(connection));
-			newConnection->type = type;
-			newConnection->identifier = (char*)malloc(strlen(to));
-			strcpy(newConnection->identifier, to);
+
+			connection* newConnection = makeConnection(to, type);
 
 			connection* currentConnection = current->connections;
 
 			if (currentConnection == NULL){
 
 				current->connections = newConnection;
-				newConnection->next = NULL;
 				madeConnection = 1;
 			}
 
