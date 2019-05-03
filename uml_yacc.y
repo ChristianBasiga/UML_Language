@@ -21,6 +21,15 @@ typedef struct IdentNode{
 } IdentifierNode;
 
 
+typedef struct ParamList{
+
+
+	struct ParamList* next;
+	member* data;
+
+} ParamList;
+
+
 void append(IdentifierNode* head, char* toAdd){
 
 	IdentifierNode* newIdent = (IdentifierNode*)malloc(sizeof(IdentifierNode));
@@ -299,6 +308,7 @@ main(){
 
 
 %union{
+	struct ParamList* parameters;
 	struct member* memberType;
 	char* string;
 	char symbol[2];
@@ -320,6 +330,7 @@ main(){
 %type <string> print_format;
 %type <identifiers> identifier_list;
 %type <memberType> variable;
+%type <parameters> variables;
 %%
 
 
@@ -439,16 +450,8 @@ command:
 	}
 	|
 	
-	/*reduce reduce folowed by shift reduce may happen.
-	//reduce reduce fine it will default to this,
-	//but latter, hmm, specifically uml? Cause I mean that's true.*/
-	/*I could make UML nullable, then only if it's not NULL do other one*/
-	/*Not a good fix, cause not always want to do UML to create that relationship right?*/
-	/*Checking relation may actually be better*/
-	
 	COMMAND UML identifier_list RELATION IDENTIFIER 
 	{
-		puts("here?");
 		//Both identifiers here must refer to structure.
 		//Same as below, use symbol table with command bst with nodes of function pointers.
 		//Much cleaner than if else ifs
@@ -572,11 +575,82 @@ command:
 
 function:
 	meta_data data_type IDENTIFIER '(' variables ')'
+	{
+
+
+		member* m = getMemberNode($3);
+		m->type = $2;
+		m->mt = FUNCTION;
+		m->metaInfo = $1;
+		
+		//Initialize params.
+	
+
+		
+		ParamList* params = $5;
+
+		
+		member* currentParams = (member*)malloc(sizeof(member));
+		//Fake head, to make creating params.
+		member* fakeHead = currentParams;
+		while (params != NULL){
+
+			
+			currentParams->next = params->data;
+			params = params->next;
+
+			currentParams = currentParams->next;
+		}
+
+
+
+		//Then by the end of it attach next of fake head to parameters of member function
+		m->parameters = fakeHead->next;
+			
+		//Free fake head.
+		free(fakeHead);
+	
+	
+			
+	}
 	;
 	
 variables:
 	|
-	variable variables ','
+	variable variables
+	{
+
+		//This should be list of stuf.
+		
+		if ($2 == NULL){
+
+			ParamList* list = (ParamList*)malloc(sizeof(ParamList));
+			list->data = $1;
+
+			$$ = list;
+		}
+		else{
+
+			//Otherwise add to list.
+
+			ParamList* current = $2;
+
+			while (current->next != NULL){
+
+				
+				current = current->next;	
+
+			}
+
+			ParamList* new = (ParamList*)malloc(sizeof(ParamList));
+			new->data = $1;
+			current->next = new;
+
+
+			$$ = current;	
+
+		}
+	}
 	;
 variable:
 	meta_data data_type IDENTIFIER{
@@ -585,7 +659,7 @@ variable:
 		member* m = getMemberNode($3);
 
 		m->type = $2;
-		
+		m->mt = VARIABLE;
 		m->metaInfo = $1;
 
 

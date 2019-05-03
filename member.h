@@ -17,7 +17,14 @@ typedef struct member{
 	char* type;
 	char* name;
 	memberType mt;
+	//parameters.
+
+	//Only 4 extra bytes may or may not be used.
+	struct member* parameters;	
+	
 } member;
+
+//Ideally inherit from both.
 
 //LL really just a stack, if I keep reference to tail
 typedef struct memberLL{
