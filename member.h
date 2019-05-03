@@ -11,7 +11,9 @@ typedef struct member{
 	struct member* left;
 	struct member* right;
 	char accessSpecifier;
-	char metaInfo[3];
+	
+	//Why'd I make this size 3? Oh right asteric instead of spelling out.
+	char* metaInfo;
 	char* type;
 	char* name;
 	memberType mt;

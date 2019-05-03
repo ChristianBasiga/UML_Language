@@ -32,7 +32,7 @@ void assignToSymbol(){
 %%
 uml			{return UML;}
 class|interface		{assignToString(); return STRUCTURE;}
-int|float|string	{assignToString(); return DATA_TYPE;}
+void|int|float|string	{assignToString(); return DATA_TYPE;}
 abstract|static		{assignToString(); return META_TYPE;}
 create|delete|print		{assignToString(); return COMMAND;}
 all|parents|children	{assignToString(); return PRINT_SPECIFICATION;}

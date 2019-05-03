@@ -21,10 +21,32 @@ typedef struct IdentNode{
 } IdentifierNode;
 
 
+void append(IdentifierNode* head, char* toAdd){
+
+	IdentifierNode* newIdent = (IdentifierNode*)malloc(sizeof(IdentifierNode));
+	newIdent->identifier = toAdd;
+
+
+	IdentifierNode* current = head;
+
+	while (current->next != NULL){
+
+		
+		current = current->next;
+	}
+
+	current->next = current;
+	current->next = NULL;
+
+}
+
+
 int yydebug = 1;
 
 structure_trie* sTrie;
 relationship* relationshipGraph;
+//List of all identifiers to use to go through trie.
+IdentifierNode* structureIdentifiers;
 
 int printStructure(char* structureName, char* options){
 
@@ -99,10 +121,18 @@ int createStructure(char* structureName, char* type){
 	s->type = stype;
 
 
-	//Okay, cool seg fault.
+	//All pointing to same string.
 	int added = addStructure(sTrie, structureName, s);
 	if (added){
-	
+
+		if (structureIdentifiers == NULL){
+			structureIdentifiers = (IdentifierNode*)malloc(sizeof(IdentifierNode));
+		}
+		else{
+			
+			//Create new one and add onto it.
+			append(structureIdentifiers, structureName);
+		}
 		puts("here atleast?");
 		relationship* r = getRelationship(s->name);
 		if (relationshipGraph == NULL){
@@ -123,7 +153,9 @@ int createStructure(char* structureName, char* type){
 
 }
 
-int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access){
+int addMemberToStructure(char* structureName, member* toAdd){
+
+//int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access, memberType type){
 
 
 
@@ -135,10 +167,7 @@ int addMemberToStructure(char* structureName, char* memberName, char* data_type,
 		return 0;
 	}
 
-
-	member* m = getMemberNode(memberName);
-
-	int added = addMember(s, m);
+	int added = addMember(s, toAdd);
 
 	return added;
 
@@ -203,11 +232,64 @@ int yywrap(){
 
 }
 
+int generateCode(){
+
+	//Go through each structure in trie.
+
+	IdentifierNode* current = structureIdentifiers;
+	
+	//Generate java instead of c++
+	while (current != NULL){
+	
+		structure* s = getStructure(sTrie, current->identifier);
+		
+		char* sType;
+		
+		switch (s->type){
+
+			CLASS:
+				sType = (char*)malloc(6);
+				strcpy(sType, "class");
+			break;
+
+			INTERFACE:
+				sType = (char*)malloc(10);
+				strcpy(sType, "interface");
+			break;		
+
+		}
+
+				
+		//I want to separate public and private
+		//Also want methods eventually.
+		//actually if java not really needed.
+
+		//but ideally.
+
+		member* members = s->members;
+
+
+		
+
+		//Reallocate, free, could hold count of members, or reuse same string
+		//ideally want to batch write into each file.
+		
+		current = current->next;
+	}	
+
+}
+
 main(){
 
 	sTrie = getNode();
 	relationshipGraph = NULL;
+	structureIdentifiers = NULL;
 	yyparse();
+
+	//After done parsing generate code.
+	//I'm going to have conflicts, didn't realize this.
+
+
 }
 
 
@@ -217,6 +299,7 @@ main(){
 
 
 %union{
+	struct member* memberType;
 	char* string;
 	char symbol[2];
 	char character;
@@ -236,12 +319,10 @@ main(){
 %type <string> meta_data;
 %type <string> print_format;
 %type <identifiers> identifier_list;
-
+%type <memberType> variable;
 %%
 
 
-/*First non terminal is what should be left in stack, so to allow multiple command
-same as allowing multiple meta_data specifications, was overthinking this*/
 program:
        |
        program command 
@@ -267,7 +348,8 @@ command:
 		}
 	}
 	|
-	COMMAND meta_data ACCESS data_type IDENTIFIER RELATION IDENTIFIER 
+	/*Adding member variables into a structure*/
+	COMMAND ACCESS variable RELATION IDENTIFIER 
 	{
 		//Add update here too
 		if (strcmp($1, "create") != 0){
@@ -275,13 +357,32 @@ command:
 		}
 		else{
 
-			int added = addMemberToStructure($7, $5, $4, $2,$3);
+			$3->accessSpecifier = $2;
+
+			int added = addMemberToStructure($5, $3);
 			if (added)
 				puts("added member");
 			else
 				puts("member exists in that structure");	
 		}
 	}
+	|
+	COMMAND ACCESS function
+	{
+
+		
+		if (strcmp($1, "create") != 0){
+			YYABORT;
+		}
+		else{
+
+			
+		}
+		
+	}
+	
+
+	/*Parameter rule, between paranthesis and variable declarations.*/
 	|
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
@@ -468,6 +569,31 @@ command:
 	
 	;
 
+
+function:
+	meta_data data_type IDENTIFIER '(' variables ')'
+	;
+	
+variables:
+	|
+	variable variables ','
+	;
+variable:
+	meta_data data_type IDENTIFIER{
+
+		
+		member* m = getMemberNode($3);
+
+		m->type = $2;
+		
+		m->metaInfo = $1;
+
+
+		$$ = m;
+
+
+	}
+	;
 
 meta_data:
 	 |
