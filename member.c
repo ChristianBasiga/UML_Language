@@ -27,6 +27,22 @@ memberLL*  getToTail(memberLL* ll){
 	return current;
 
 }
+
+void freeMember(member* m){
+
+	if (m == NULL) return;
+
+	free(m->metaInfo);
+	free(m->type);
+	free(m->name);
+	
+	//then recursively free parameters	
+	freeMember(m->parameters->left);
+	freeMember(m->parameters->right);
+
+	free(m);
+}
+
 void dfsMembers(member* root, memberLL* ll){
 
 

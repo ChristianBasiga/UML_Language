@@ -5,6 +5,8 @@
 #include "structure.h"
 #include "member.h"
 #include "relationships.h"
+#include "codeGenerator.h"
+
 //Will convert below to C++ likely instead of C, much easier to work with.
 //Will store identifiers in bst or trie. To reuse characters, I will build a trie instead
 //for now static 26.
@@ -21,41 +23,10 @@ typedef struct IdentNode{
 } IdentifierNode;
 
 
-typedef struct ParamList{
-
-
-	struct ParamList* next;
-	member* data;
-
-} ParamList;
-
-
-void append(IdentifierNode* head, char* toAdd){
-
-	IdentifierNode* newIdent = (IdentifierNode*)malloc(sizeof(IdentifierNode));
-	newIdent->identifier = toAdd;
-
-
-	IdentifierNode* current = head;
-
-	while (current->next != NULL){
-
-		
-		current = current->next;
-	}
-
-	current->next = current;
-	current->next = NULL;
-
-}
-
-
 int yydebug = 1;
 
 structure_trie* sTrie;
 relationship* relationshipGraph;
-//List of all identifiers to use to go through trie.
-IdentifierNode* structureIdentifiers;
 
 int printStructure(char* structureName, char* options){
 
@@ -67,7 +38,6 @@ int printStructure(char* structureName, char* options){
 	//let's say just basic one first.
 
 	//Instead of enum prob better just to keep as same time, honestly.
-	
 
 	char* structureTypeName = "class";
 
@@ -75,27 +45,10 @@ int printStructure(char* structureName, char* options){
 		structureTypeName = "interface";
 	}
 
-	//Need to iterate through rlationship graph
-	connection* connections = getConnections(relationshipGraph, structureName);
+
 
 	printf("%s %s\n", structureTypeName, structureName);
 	
-	connection* currentConnection = connections;
-
-	if (connections != NULL){
-
-		puts("Printing relations");
-	}
-	
-	while (currentConnection != NULL){
-
-		char* typeString = typeToString(currentConnection->type);
-		if (typeString == NULL) puts("failed to parse type to string");
-		printf("%s [%s]", typeString, currentConnection->identifier);
-		currentConnection = currentConnection->next;
-		free(typeString);
-	}
-		
 	//Todo: Iterate through graph and display parents and children
 
 	memberLL* members = getMembers(s);
@@ -130,31 +83,18 @@ int createStructure(char* structureName, char* type){
 	s->type = stype;
 
 
-	//All pointing to same string.
+	//Okay, cool seg fault.
 	int added = addStructure(sTrie, structureName, s);
+	
 	if (added){
 
-		if (structureIdentifiers == NULL){
-			structureIdentifiers = (IdentifierNode*)malloc(sizeof(IdentifierNode));
-		}
-		else{
-			
-			//Create new one and add onto it.
-			append(structureIdentifiers, structureName);
-		}
-		puts("here atleast?");
 		relationship* r = getRelationship(s->name);
 		if (relationshipGraph == NULL){
-			printf("initialized graph\n");
 			relationshipGraph = r;
 		}
 		else{
-			
-			int addedToGraph = addToGraph(relationshipGraph, r);
-			if (addedToGraph){
 
-				printf("added new structure to graph\n");
-			}
+			addToGraph(relationshipGraph, r);
 		}
 	}
 
@@ -162,9 +102,7 @@ int createStructure(char* structureName, char* type){
 
 }
 
-int addMemberToStructure(char* structureName, member* toAdd){
-
-//int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access, memberType type){
+int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access){
 
 
 
@@ -176,7 +114,10 @@ int addMemberToStructure(char* structureName, member* toAdd){
 		return 0;
 	}
 
-	int added = addMember(s, toAdd);
+
+	member* m = getMemberNode(memberName);
+
+	int added = addMember(s, m);
 
 	return added;
 
@@ -241,63 +182,19 @@ int yywrap(){
 
 }
 
-int generateCode(){
 
-	//Go through each structure in trie.
-
-	IdentifierNode* current = structureIdentifiers;
-	
-	//Generate java instead of c++
-	while (current != NULL){
-	
-		structure* s = getStructure(sTrie, current->identifier);
-		
-		char* sType;
-		
-		switch (s->type){
-
-			CLASS:
-				sType = (char*)malloc(6);
-				strcpy(sType, "class");
-			break;
-
-			INTERFACE:
-				sType = (char*)malloc(10);
-				strcpy(sType, "interface");
-			break;		
-
-		}
-
-				
-		//I want to separate public and private
-		//Also want methods eventually.
-		//actually if java not really needed.
-
-		//but ideally.
-
-		member* members = s->members;
-
-
-		
-
-		//Reallocate, free, could hold count of members, or reuse same string
-		//ideally want to batch write into each file.
-		
-		current = current->next;
-	}	
-
-}
 
 main(){
 
 	sTrie = getNode();
 	relationshipGraph = NULL;
-	structureIdentifiers = NULL;
 	yyparse();
 
-	//After done parsing generate code.
-	//I'm going to have conflicts, didn't realize this.
 
+	//Hindsight, yacc should end after the parse, it should fork and 
+	//and pass in this info, for testing purposes will just put here.
+	//Todo: Generate code based on trie, and relationship graph.
+	generateCode(sTrie, relationshipGraph);
 
 }
 
@@ -308,8 +205,6 @@ main(){
 
 
 %union{
-	struct ParamList* parameters;
-	struct member* memberType;
 	char* string;
 	char symbol[2];
 	char character;
@@ -329,11 +224,12 @@ main(){
 %type <string> meta_data;
 %type <string> print_format;
 %type <identifiers> identifier_list;
-%type <memberType> variable;
-%type <parameters> variables;
+
 %%
 
 
+/*First non terminal is what should be left in stack, so to allow multiple command
+same as allowing multiple meta_data specifications, was overthinking this*/
 program:
        |
        program command 
@@ -359,8 +255,7 @@ command:
 		}
 	}
 	|
-	/*Adding member variables into a structure*/
-	COMMAND ACCESS variable RELATION IDENTIFIER 
+	COMMAND meta_data ACCESS data_type IDENTIFIER RELATION IDENTIFIER 
 	{
 		//Add update here too
 		if (strcmp($1, "create") != 0){
@@ -368,32 +263,13 @@ command:
 		}
 		else{
 
-			$3->accessSpecifier = $2;
-
-			int added = addMemberToStructure($5, $3);
+			int added = addMemberToStructure($7, $5, $4, $2,$3);
 			if (added)
 				puts("added member");
 			else
 				puts("member exists in that structure");	
 		}
 	}
-	|
-	COMMAND ACCESS function
-	{
-
-		
-		if (strcmp($1, "create") != 0){
-			YYABORT;
-		}
-		else{
-
-			
-		}
-		
-	}
-	
-
-	/*Parameter rule, between paranthesis and variable declarations.*/
 	|
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
@@ -450,8 +326,16 @@ command:
 	}
 	|
 	
+	/*reduce reduce folowed by shift reduce may happen.
+	//reduce reduce fine it will default to this,
+	//but latter, hmm, specifically uml? Cause I mean that's true.*/
+	/*I could make UML nullable, then only if it's not NULL do other one*/
+	/*Not a good fix, cause not always want to do UML to create that relationship right?*/
+	/*Checking relation may actually be better*/
+	
 	COMMAND UML identifier_list RELATION IDENTIFIER 
 	{
+		puts("here?");
 		//Both identifiers here must refer to structure.
 		//Same as below, use symbol table with command bst with nodes of function pointers.
 		//Much cleaner than if else ifs
@@ -463,7 +347,7 @@ command:
 			IdentifierNode* current = $3;
 
 			while (current != NULL){
-				int added = addStructureRelation(current, $5, $3);
+				int added = addStructureRelation(current->identifier, $5, $3->identifier);
 				current = current->next;
 			}
 		
@@ -477,7 +361,7 @@ command:
 			IdentifierNode* current = $3;
 
 			while (current != NULL){
-				int deleted = removeStructureRelation(current, $5, $3);
+				int deleted = removeStructureRelation(current->identifier, $5, $3->identifier);
 				current = current->next;
 			}
 		}	
@@ -495,25 +379,12 @@ command:
 			//Create relationship
 			//Only if both structures.
 			int isStructure = structureExists(sTrie, $4);
-			puts("here");
+
 			if (!isStructure){
 
 				puts("Can only inherit from a structure");
-				YYABORT;
 			}
-
-			//Then do same check for each in identifier list
-			
-			int added = addStructureRelation($2->identifier, $4, $3);
-
-			if (added){
-
-				puts("Relation made");
-			}
-			else{
-				puts("Failed to make relation");
-				YYABORT;
-			}
+			addStructureRelation($2->identifier, $4, $3);
 		}
 		
 		//When deleting structures need to consider the relationships structure has with other structures
@@ -572,102 +443,6 @@ command:
 	
 	;
 
-
-function:
-	meta_data data_type IDENTIFIER '(' variables ')'
-	{
-
-
-		member* m = getMemberNode($3);
-		m->type = $2;
-		m->mt = FUNCTION;
-		m->metaInfo = $1;
-		
-		//Initialize params.
-	
-
-		
-		ParamList* params = $5;
-
-		
-		member* currentParams = (member*)malloc(sizeof(member));
-		//Fake head, to make creating params.
-		member* fakeHead = currentParams;
-		while (params != NULL){
-
-			
-			currentParams->next = params->data;
-			params = params->next;
-
-			currentParams = currentParams->next;
-		}
-
-
-
-		//Then by the end of it attach next of fake head to parameters of member function
-		m->parameters = fakeHead->next;
-			
-		//Free fake head.
-		free(fakeHead);
-	
-	
-			
-	}
-	;
-	
-variables:
-	|
-	variable variables
-	{
-
-		//This should be list of stuf.
-		
-		if ($2 == NULL){
-
-			ParamList* list = (ParamList*)malloc(sizeof(ParamList));
-			list->data = $1;
-
-			$$ = list;
-		}
-		else{
-
-			//Otherwise add to list.
-
-			ParamList* current = $2;
-
-			while (current->next != NULL){
-
-				
-				current = current->next;	
-
-			}
-
-			ParamList* new = (ParamList*)malloc(sizeof(ParamList));
-			new->data = $1;
-			current->next = new;
-
-
-			$$ = current;	
-
-		}
-	}
-	;
-variable:
-	meta_data data_type IDENTIFIER{
-
-		
-		member* m = getMemberNode($3);
-
-		m->type = $2;
-		m->mt = VARIABLE;
-		m->metaInfo = $1;
-
-
-		$$ = m;
-
-
-	}
-	;
 
 meta_data:
 	 |

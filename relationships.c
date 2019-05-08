@@ -1,6 +1,6 @@
 #include "relationships.h"
 #include <string.h>
-
+#include <stdlib.h>
 
 
 relationship_type parseType(char* type){

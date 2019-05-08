@@ -51,6 +51,7 @@ structure_trie* getNode();
 int structureExists(structure_trie* root, char* structureName);
 int deleteStructure(structure_trie* root, char* structureName);
 int addStructure(structure_trie* root, char* structureName, structure* s);
+int getAmountOfMembers(structure* s);
 structure* getStructure(structure_trie* root, char* structureName);
 
 #endif
