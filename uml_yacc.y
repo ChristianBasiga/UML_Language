@@ -296,23 +296,6 @@ command:
 		}
 	}
 	|
-	COMMAND ACCESS variable  RELATION IDENTIFIER 
-	{
-		puts("here instead");
-		//Add update here too
-		if (strcmp($1, "create") != 0){
-			YYABORT;
-		}
-		else{
-
-			$3->accessSpecifier = $2;
-			int added = addMemberToStructure($5,$3);
-			if (added)
-				puts("added member");
-			else
-				puts("member exists in that structure");	
-		}
-	}
 
 	/*Virtually the same apart form function literally needing func in it and var not.*/
 	COMMAND ACCESS function RELATION IDENTIFIER
@@ -333,7 +316,24 @@ command:
 		}
 		
 	}
-	
+	|
+	COMMAND ACCESS variable  RELATION IDENTIFIER 
+	{
+		puts("here instead");
+		//Add update here too
+		if (strcmp($1, "create") != 0){
+			YYABORT;
+		}
+		else{
+
+			$3->accessSpecifier = $2;
+			int added = addMemberToStructure($5,$3);
+			if (added)
+				puts("added member");
+			else
+				puts("member exists in that structure");	
+		}
+	}
 	|
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
@@ -500,28 +500,58 @@ command:
 	}
       ;
 function:
-	FUNC meta_data data_type IDENTIFIER LEFTP variables RIGHTP
-    {
+
+/*
+	FUNC meta_data data_type IDENTIFIER LEFTP RIGHTP{
+
+		puts("here");
 
 		member* m = getMemberNode($4);
 		m->type = $3;
 		m->mt = FUNCTION;
 		m->metaInfo = $2;
 		
+		$$ = m;
+	}
+	|*/
+	variable LEFTP RIGHTP{
+
+
+		puts("no parameter method");
+		member* m = $1;
+		m->mt = FUNCTION;
+		m->parameters = NULL;
+
+	}
+
+	|
+	variable LEFTP variables RIGHTP
+ 	{
+
+		puts("with param method");
 		//Initialize params.
 	
-		printf("%p\n",$6);
-		ParamList* params = $6;
+		member* m = $1;
+		m->mt = FUNCTION;
 		
-		//Gotta find way to set variables to null, prior cause this check doesn't do it.
-		//so don't work with agumentless methods.
-	
+		ParamList* params = $3;
+		
 		while (params != NULL){
-		
+			
+			puts("here???");		
 			addParameter(m, params->data);	
 			params = params->next;
 		}
-		
+
+		if (m->parameters == NULL){
+
+			puts("here? though");
+
+		}
+		else{
+
+			puts("here! though");
+		}
 
 		$$ = m;
 			
@@ -534,15 +564,17 @@ variables:
     {
 		//This should be list of stuf.
 		
-		if ($1 == NULL){
+		if ($1->data == NULL){
 
-		
+				puts("I gotta happen in this instance");	
 
-			ParamList* list = (ParamList*)malloc(sizeof(ParamList));
-			list->data = $2;
-			$$ = list;
+				$1->data = $2;
+				$1->next = NULL;
+				$$ = $1;
 		}
 		else{
+
+				puts("here then?");
 			//Otherwise add to list.
 			ParamList* current = $1;
 			while (current->next != NULL){
@@ -551,11 +583,12 @@ variables:
 			}
 			ParamList* new = (ParamList*)malloc(sizeof(ParamList));
 			new->data = $2;
+			new->next = NULL;
 			current->next = new;
-			$$ = current;	
 		}
 	}
 	;
+	/*So this is problem, since this part is in function, it reduces to variable, which is a problem cause then it causes a syntax error*/
 variable:
 	meta_data data_type IDENTIFIER{
 		

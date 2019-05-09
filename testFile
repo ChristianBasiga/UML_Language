@@ -1,6 +1,6 @@
 create class c
-create + func int foo(int x) > c
-
-
+create - int var > c
+create + int foo() > c
+create * string key(int x) > c
 
 

@@ -9,7 +9,7 @@ member* getMemberNode(char* name){
 	newNode->left = NULL;
 	newNode->right = NULL;
 	newNode->name = (char*)malloc(strlen(name));
-
+	newNode->parameters = NULL;
 	strcpy(newNode->name, name);
 
 
@@ -88,7 +88,14 @@ int addMemberUtil(member* current, member* memberToAdd){
 
 int addParameter(member* function, member* param)
 {
-    return addMemberUtil(function, param);
+
+
+	if (function->parameters == NULL){
+		function->parameters = param;
+		return 1;
+	}
+    
+	return addMemberUtil(function->parameters, param);
 }
 
 

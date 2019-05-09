@@ -92,6 +92,10 @@ char* parseAccessSpecifier(char accessChar){
 void addToQueue(MemberQueue* root, member* toAdd){
 
 
+	if (toAdd == NULL){
+		return; 
+	}
+
 	//Could just excahnge it with head,
 	MemberQueue* current = root;
 
@@ -102,7 +106,7 @@ void addToQueue(MemberQueue* root, member* toAdd){
 	}
 
 	MemberQueue* newMember = (MemberQueue*)malloc(sizeof(MemberQueue));
-
+	newMember->data = toAdd;
 	current->next = newMember;
 
 }
@@ -199,7 +203,7 @@ void writeToFile(ReadyToWrite *s){
 
 
 
-	
+	fseek(functionWriter, offSet + 1, 0);	
 	//I wonder if fseek goes over new lines
 	fseek(variableWriter, offSet, 0);
 
@@ -222,7 +226,7 @@ void writeToFile(ReadyToWrite *s){
 		//Depending on type, write using respecting fp.
 		
 		//+ 5 for semicolon and new line, and spaces
-		int buffer = strlen(members->data->type) + strlen(members->data->metaInfo) + strlen(members->data->name) + 
+		int buffer = strlen(members->data->type) + /*strlen(members->data->metaInfo) +*/ strlen(members->data->name) + 
 		strlen(accessSpecifier) + 5;
 
 		
@@ -230,7 +234,8 @@ void writeToFile(ReadyToWrite *s){
 
 
 			//Then extra buffer for paranthesis and  parameters.
-			buffer += 2 + 256;
+			buffer += 2 + 400;
+
 
 
 			char* dest = (char*)malloc(buffer);
@@ -238,7 +243,7 @@ void writeToFile(ReadyToWrite *s){
 			strcat(dest,"\t");
 			strcat(dest, accessSpecifier);
 			strcat(dest, " ");
-			strcat(dest, members->data->metaInfo);
+//			strcat(dest, members->data->metaInfo);
 
 			strcat(dest, members->data->type);
 			strcat(dest, " ");
@@ -246,25 +251,29 @@ void writeToFile(ReadyToWrite *s){
 			strcat(dest, members->data->name);
 			strcat(dest,"(");
 
+
+		
 			//Gotta refactor alot cause is tedious like this.
 			member* parameters = members->data->parameters;
 
-			member* current = parameters;
-			member* nextInQueue;
+			if (parameters != NULL){
+				
+				puts("here? yeah");
 			
 			MemberQueue* root = (MemberQueue*)malloc(sizeof(MemberQueue));
 			root->data = parameters;
 
-			MemberQueue* next = root;
-
+			root->next = NULL;
 
 			//Then gotta write parameters.
 			//Bfs of parameters.
 			while (root != NULL){
-
+	
+				printf("[%s]\n", root->data->name);
 				
 				//Write root's information.
 				strcat(dest, root->data->type);
+				strcat(dest, " ");
 				strcat(dest, root->data->name);
 
 				if (root->next != NULL)
@@ -276,15 +285,16 @@ void writeToFile(ReadyToWrite *s){
 
 				MemberQueue* prevRoot = root;
 				root = root->next;
-				//Should create a free function for members
-				freeMember(prevRoot->data);
+
 				free(prevRoot);
+
+			}
 
 			}
 
 			strcat(dest,");\n");
 			
-			fputs(dest, functionWriter);
+			fputs(dest, fp);
 			free(dest);
 							
 
@@ -303,10 +313,10 @@ void writeToFile(ReadyToWrite *s){
 			strcat(dest,";\n");
 		
 			//Then write to file.
-			fputs(dest,variableWriter);
+			fputs(dest,fp);
 		
 			//Then move functionPointer down a line.
-			fseek(functionWriter,strlen(dest), 2);
+			//fseek(functionWriter,strlen(dest), 2);
 			//fseek(fp, strlen(dest), 2);
 			free(dest);
 		}
