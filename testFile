@@ -1,6 +1,5 @@
-create class a
-create + int var > a
-print a all
+create class c
+create + func int foo(int x) > c
 
 
 

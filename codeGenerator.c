@@ -109,6 +109,8 @@ void addToQueue(MemberQueue* root, member* toAdd){
 
 void writeToFile(ReadyToWrite *s){
 
+
+	
 	char* fileName = (char*)malloc(strlen(s->className) + 3);
 	strcat(fileName, s->className);
 	strcat(fileName,".h");
@@ -129,11 +131,6 @@ void writeToFile(ReadyToWrite *s){
 	//Also needs lines for all of the includes,
 	//need another structure that puts all that into one place for easy writing.
 
-	for(int i = 0; i < lineCount; ++i){
-
-
-		fputc('\n', fp);
-	}
 
 //Need public pointer and private pointer to, unless prefix everything with : lmao
 //which would be stupid, but would work. But then don't actually need includes if do in java
@@ -141,10 +138,6 @@ void writeToFile(ReadyToWrite *s){
 
 	//Starting at one off from each other, buffer inbetween being number of members total.
 	
-	//Reset 
-	FILE *functionWriter = fopen(fileName,"w");
-
-	FILE *variableWriter = fopen(fileName,"w");
 
 	//offset in bytes not new lines, starting at 3 for class name and curly braces
 	int offSet = 3;
@@ -177,39 +170,49 @@ void writeToFile(ReadyToWrite *s){
 		free(includeString);
 	}
 
-	char* className = (char*)malloc(strlen("class ") + strlen(s->className)) + 3;
-	char* originalPtr = className;
-	strcat(className, "class ");
-	strcat(className,s->className);
-	strcat(className, "\n");
+	char* className = (char*)malloc(strlen("class ") + strlen(s->className) +3);
+	className = strcat(className, "class ");
+	className = strcat(className,s->className);
+	className = strcat(className, "\n");
 
-
+	offSet += strlen(className);	
 
 	fputs(className, fp);
 
-//	free(originalPtr);
+	free(className);
 		
 	fputs("{\n",fp);
 
 
 	//TODO: start using registers instead of main memory.
 
+	FILE *functionWriter = fp;
+	FILE *variableWriter = fp;
 
 
+	for(int i = 0; i < lineCount + offSet; ++i){
+
+
+		fputc('\n', fp);
+	}
+
+
+
+
+	
 	//I wonder if fseek goes over new lines
-	fseek(variableWriter, 0, 0);
-	fseek(functionWriter, offSet + 1, 0);
+	fseek(variableWriter, offSet, 0);
 
 	memberLL* members = s->members;
 
-
+	puts("getting here?");
+	
 	//If i do get members, I'm essentially traversing it twice though, could just do dfs, then do this at each stuff, makes
 	//writing into file harder though.
 	while (members != NULL){
 
 
 		int memberType = members->data->mt;
-
 
 
 
@@ -232,6 +235,7 @@ void writeToFile(ReadyToWrite *s){
 
 			char* dest = (char*)malloc(buffer);
 
+			strcat(dest,"\t");
 			strcat(dest, accessSpecifier);
 			strcat(dest, " ");
 			strcat(dest, members->data->metaInfo);
@@ -288,8 +292,9 @@ void writeToFile(ReadyToWrite *s){
 		else if (memberType == VARIABLE){
 
 
-			char* dest = (char*)malloc(buffer);
+			char* dest = (char*)malloc(buffer + 1);
 
+			strcat(dest,"\t");
 			strcat(dest, accessSpecifier);
 			strcat(dest, " ");
 			strcat(dest, members->data->type);
@@ -298,11 +303,11 @@ void writeToFile(ReadyToWrite *s){
 			strcat(dest,";\n");
 		
 			//Then write to file.
-			fputs(dest,fp);
+			fputs(dest,variableWriter);
 		
 			//Then move functionPointer down a line.
-			fseek(functionWriter,1, 2);
-			fseek(fp, strlen(dest), 2);
+			fseek(functionWriter,strlen(dest), 2);
+			//fseek(fp, strlen(dest), 2);
 			free(dest);
 		}
 
@@ -313,11 +318,9 @@ void writeToFile(ReadyToWrite *s){
 		free(accessSpecifier);
 	}	
 
-	fclose(functionWriter);
-	fclose(variableWriter);
 
 	//from 1 off end of file.
-	fputs("}\n", fp);
+	fputs("};\n", fp);
 
 	fclose(fp);
 }

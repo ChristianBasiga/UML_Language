@@ -30,15 +30,18 @@ void assignToSymbol(){
 %}
 
 %%
+func		{return FUNC;}
 uml			{return UML;}
 class|interface		{assignToString(); return STRUCTURE;}
-void|int|float|string	{assignToString(); return DATA_TYPE;}
+char|void|int|float|string	{assignToString(); return DATA_TYPE;}
 abstract|static		{assignToString(); return META_TYPE;}
 create|delete|print		{assignToString(); return COMMAND;}
 all|parents|children	{assignToString(); return PRINT_SPECIFICATION;}
 [a-zA-Z]+[a-zA-Z0-9]*	{assignToString(); return IDENTIFIER;}
-\+|-|\*			{assignToChar(); return ACCESS;}
+[\+\-\*]			{assignToChar(); return ACCESS;}
 \^|>			{assignToChar(); return RELATION;}
 [ \t]	;
+\(			{return LEFTP;}
+\)			{return RIGHTP;}
 %%
 

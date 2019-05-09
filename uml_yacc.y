@@ -246,6 +246,9 @@ int main(){
 	struct IdentNode* identifiers;
 };
 
+%token LEFTP RIGHTP;
+%token <string> FUNC;
+%token <character> ACCESS;
 %token <character> UML;
 %token <string> IDENTIFIER;
 %token <string> COMMAND;
@@ -253,14 +256,16 @@ int main(){
 %token <string> DATA_TYPE;
 %token <string> STRUCTURE;
 %token <string> PRINT_SPECIFICATION;
-%token <character> ACCESS;
 %token <symbol> RELATION; 
-%type <string> data_type;
+%token <character> LPAREN;
+%token <character> RPAREN;
 %type <string> meta_data;
 %type <string> print_format;
+%type <string> data_type;
 %type <identifiers> identifier_list;
 %type <parameters> variables;
 %type <memberType> variable;
+%type <memberType> function;
 %%
 
 
@@ -293,6 +298,7 @@ command:
 	|
 	COMMAND ACCESS variable  RELATION IDENTIFIER 
 	{
+		puts("here instead");
 		//Add update here too
 		if (strcmp($1, "create") != 0){
 			YYABORT;
@@ -307,6 +313,27 @@ command:
 				puts("member exists in that structure");	
 		}
 	}
+
+	/*Virtually the same apart form function literally needing func in it and var not.*/
+	COMMAND ACCESS function RELATION IDENTIFIER
+	{
+		puts("here");
+		
+		if (strcmp($1, "create") != 0){
+			YYABORT;
+		}
+		else{
+			
+			$3->accessSpecifier = $2;
+			int added = addMemberToStructure($5,$3);
+			if (added)
+				puts("added member");
+			else
+				puts("member exists in that structure");	
+		}
+		
+	}
+	
 	|
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
@@ -471,37 +498,32 @@ command:
 	
 		
 	}
-    |
-	COMMAND ACCESS function
-	{
-		
-		if (strcmp($1, "create") != 0){
-			YYABORT;
-		}
-		else{
-			
-		}
-		
-	}
-    ;
+      ;
 function:
-	meta_data data_type IDENTIFIER '(' variables ')'
+	FUNC meta_data data_type IDENTIFIER LEFTP variables RIGHTP
     {
-		member* m = getMemberNode($3);
-		m->type = $2;
+
+		member* m = getMemberNode($4);
+		m->type = $3;
 		m->mt = FUNCTION;
-		m->metaInfo = $1;
+		m->metaInfo = $2;
 		
 		//Initialize params.
 	
+		printf("%p\n",$6);
+		ParamList* params = $6;
 		
-		ParamList* params = $5;
-		
+		//Gotta find way to set variables to null, prior cause this check doesn't do it.
+		//so don't work with agumentless methods.
+	
 		while (params != NULL){
 		
 			addParameter(m, params->data);	
 			params = params->next;
 		}
+		
+
+		$$ = m;
 			
 	}
 	;
@@ -512,7 +534,10 @@ variables:
     {
 		//This should be list of stuf.
 		
-		if ($2 == NULL){
+		if ($1 == NULL){
+
+		
+
 			ParamList* list = (ParamList*)malloc(sizeof(ParamList));
 			list->data = $2;
 			$$ = list;
