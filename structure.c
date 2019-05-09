@@ -3,23 +3,6 @@
 #include <string.h>
 
 
-int deleteStructure(structure_trie* root, char* structureName){
-
-
-	//Get structure.
-	
-	//Will delete all members
-	//I could delete each one individually, but will cause alot of repition.
-
-
-
-	//Start negative 1 to take into account case of 1 length and 2 length strings
-	return deleteUtil(root, structureName, -1);	
-
-	//Need to remove from trie.
-
-}
-
 int deleteUtil(structure_trie* root, char* structureName, int index){
 
 
@@ -63,6 +46,25 @@ int deleteUtil(structure_trie* root, char* structureName, int index){
 
 }
 
+int deleteStructure(structure_trie* root, char* structureName){
+
+
+	//Get structure.
+	
+	//Will delete all members
+	//I could delete each one individually, but will cause alot of repition.
+
+
+
+	//Start negative 1 to take into account case of 1 length and 2 length strings
+	return deleteUtil(root, structureName, -1);	
+
+	//Need to remove from trie.
+
+}
+
+
+
 
 structure_trie* getNode(){
 
@@ -104,6 +106,41 @@ int getAmountOfMembers(structure* s){
 
 }
 
+
+int existUtil(structure_trie* currentNode, char* name, int index, structure** foundNode){
+
+
+
+	//base case out of input.
+	if (index >= strlen(name)){
+
+		//Check if current node  has content, then exists.
+		if (currentNode != NULL){
+
+
+
+			if (foundNode != NULL){
+				*foundNode = currentNode->data;
+			}
+			return 1;
+		}
+
+		return 0;
+	}
+	if (currentNode == NULL){
+
+		
+		return 0;
+	}
+
+
+	char next = name[index];	
+	structure_trie* nextChild = currentNode->children[next-97];
+	
+	
+	return existUtil(nextChild, name, index + 1, foundNode);	
+}
+
 int structureExists(structure_trie* root, char* structureName){
 	return existUtil(root, structureName, 0, NULL);
 }
@@ -120,11 +157,6 @@ structure* getStructure(structure_trie* root, char* structureName){
 	return retrieved;
 
 
-}
-
-int addStructure(structure_trie* root, char* structureName, structure* s){
-
-	return addStructureUtil(root, structureName, 0, s);
 }
 
 int addStructureUtil(structure_trie* currentNode, char* structureName, int index, structure* s){
@@ -163,36 +195,10 @@ int addStructureUtil(structure_trie* currentNode, char* structureName, int index
 
 }
 
-int existUtil(structure_trie* currentNode, char* name, int index, structure** foundNode){
+int addStructure(structure_trie* root, char* structureName, structure* s){
 
-
-
-	//base case out of input.
-	if (index >= strlen(name)){
-
-		//Check if current node  has content, then exists.
-		if (currentNode != NULL){
-
-
-
-			if (foundNode != NULL){
-				*foundNode = currentNode->data;
-			}
-			return 1;
-		}
-
-		return 0;
-	}
-	if (currentNode == NULL){
-
-		
-		return 0;
-	}
-
-
-	char next = name[index];	
-	structure_trie* nextChild = currentNode->children[next-97];
-	
-	
-	return existUtil(nextChild, name, index + 1, foundNode);	
+	return addStructureUtil(root, structureName, 0, s);
 }
+
+
+

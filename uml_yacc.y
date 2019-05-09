@@ -11,7 +11,7 @@
 //Will store identifiers in bst or trie. To reuse characters, I will build a trie instead
 //for now static 26.
 
-
+int removeMember(structure* s, member* m);
 
 //Store them in trie, but just making this to store all that stored
 //I mean O(n* 26) v.s O(n) not huge diff, but also have extra space.
@@ -22,6 +22,29 @@ typedef struct IdentNode{
 
 } IdentifierNode;
 
+void append(IdentifierNode* head, char* toAdd){
+	IdentifierNode* newIdent = (IdentifierNode*)malloc(sizeof(IdentifierNode));
+	newIdent->identifier = toAdd;
+	IdentifierNode* current = head;
+	while (current->next != NULL){
+		
+		current = current->next;
+	}
+	current->next = current;
+	current->next = NULL;
+}
+
+IdentifierNode* structureIdentifiers;
+
+typedef struct ParamList{
+
+
+
+	struct ParamList* next;
+	member* data;
+
+
+} ParamList;
 
 int yydebug = 1;
 
@@ -88,6 +111,14 @@ int createStructure(char* structureName, char* type){
 	
 	if (added){
 
+        if (structureIdentifiers == NULL){
+			structureIdentifiers = (IdentifierNode*)malloc(sizeof(IdentifierNode));
+		}
+		else{
+			
+			//Create new one and add onto it.
+			append(structureIdentifiers, structureName);
+		}
 		relationship* r = getRelationship(s->name);
 		if (relationshipGraph == NULL){
 			relationshipGraph = r;
@@ -102,7 +133,8 @@ int createStructure(char* structureName, char* type){
 
 }
 
-int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access){
+ int addMemberToStructure(char* structureName, member* toAdd){
+//int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access){
 
 
 
@@ -115,9 +147,9 @@ int addMemberToStructure(char* structureName, char* memberName, char* data_type,
 	}
 
 
-	member* m = getMemberNode(memberName);
+	//member* m = getMemberNode(memberName);
 
-	int added = addMember(s, m);
+	int added = addMember(s, toAdd);
 
 	return added;
 
@@ -184,7 +216,7 @@ int yywrap(){
 
 
 
-main(){
+int main(){
 
 	sTrie = getNode();
 	relationshipGraph = NULL;
@@ -196,6 +228,7 @@ main(){
 	//Todo: Generate code based on trie, and relationship graph.
 	generateCode(sTrie, relationshipGraph);
 
+    return 0;
 }
 
 
@@ -205,6 +238,8 @@ main(){
 
 
 %union{
+	struct ParamList* parameters;
+	struct member* memberType;
 	char* string;
 	char symbol[2];
 	char character;
@@ -224,7 +259,8 @@ main(){
 %type <string> meta_data;
 %type <string> print_format;
 %type <identifiers> identifier_list;
-
+%type <parameters> variables;
+%type <memberType> variable;
 %%
 
 
@@ -255,7 +291,7 @@ command:
 		}
 	}
 	|
-	COMMAND meta_data ACCESS data_type IDENTIFIER RELATION IDENTIFIER 
+	COMMAND ACCESS variable  RELATION IDENTIFIER 
 	{
 		//Add update here too
 		if (strcmp($1, "create") != 0){
@@ -263,7 +299,8 @@ command:
 		}
 		else{
 
-			int added = addMemberToStructure($7, $5, $4, $2,$3);
+			$3->accessSpecifier = $2;
+			int added = addMemberToStructure($5,$3);
 			if (added)
 				puts("added member");
 			else
@@ -326,12 +363,6 @@ command:
 	}
 	|
 	
-	/*reduce reduce folowed by shift reduce may happen.
-	//reduce reduce fine it will default to this,
-	//but latter, hmm, specifically uml? Cause I mean that's true.*/
-	/*I could make UML nullable, then only if it's not NULL do other one*/
-	/*Not a good fix, cause not always want to do UML to create that relationship right?*/
-	/*Checking relation may actually be better*/
 	
 	COMMAND UML identifier_list RELATION IDENTIFIER 
 	{
@@ -440,10 +471,76 @@ command:
 	
 		
 	}
+    |
+	COMMAND ACCESS function
+	{
+		
+		if (strcmp($1, "create") != 0){
+			YYABORT;
+		}
+		else{
+			
+		}
+		
+	}
+    ;
+function:
+	meta_data data_type IDENTIFIER '(' variables ')'
+    {
+		member* m = getMemberNode($3);
+		m->type = $2;
+		m->mt = FUNCTION;
+		m->metaInfo = $1;
+		
+		//Initialize params.
 	
+		
+		ParamList* params = $5;
+		
+		while (params != NULL){
+		
+			addParameter(m, params->data);	
+			params = params->next;
+		}
+			
+	}
 	;
-
-
+	
+variables:
+	|
+	variables variable
+    {
+		//This should be list of stuf.
+		
+		if ($2 == NULL){
+			ParamList* list = (ParamList*)malloc(sizeof(ParamList));
+			list->data = $2;
+			$$ = list;
+		}
+		else{
+			//Otherwise add to list.
+			ParamList* current = $1;
+			while (current->next != NULL){
+				
+				current = current->next;	
+			}
+			ParamList* new = (ParamList*)malloc(sizeof(ParamList));
+			new->data = $2;
+			current->next = new;
+			$$ = current;	
+		}
+	}
+	;
+variable:
+	meta_data data_type IDENTIFIER{
+		
+		member* m = getMemberNode($3);
+		m->type = $2;
+		m->mt = VARIABLE;
+		m->metaInfo = $1;
+		$$ = m;
+	}
+	;
 meta_data:
 	 |
 	META_TYPE

@@ -38,6 +38,7 @@ typedef struct memberLL{
 
 
 int memberExists(structure* s, char* memberName);
+int addParameter(member* function, member* parameter);
 int addMember(structure* s, member* memberToAdd);
 void freeMember(member* m);
 int deleteAllMembers(structure* s);

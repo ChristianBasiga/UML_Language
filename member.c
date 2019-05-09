@@ -15,6 +15,83 @@ member* getMemberNode(char* name){
 
 	return newNode;
 }
+int memberExistsUtil(member* current, char* memberName){
+
+
+	if (current == NULL){
+
+		return 0;
+	}
+
+	int comparison = strcmp(memberName, current->name);
+
+	if (comparison == 0){
+
+		return 1;
+	}
+	else if (comparison < 0){
+
+		return memberExistsUtil(current->left, memberName);
+	}
+	else{
+		return memberExistsUtil(current->right, memberName);
+	}
+
+
+}	
+
+int addMemberUtil(member* current, member* memberToAdd){
+
+
+
+	if (current == NULL){
+
+
+		return 0;
+	}
+
+	char* memberName = memberToAdd->name;
+	
+	int comparison = strcmp(memberName, current->name);
+
+	if (comparison == 0){
+
+		//Already existed
+		return 0;
+	}
+	else if (comparison < 0){
+
+		if (current->left == NULL){
+
+			current->left = memberToAdd;
+			return 1;
+		}
+		else{
+			return addMemberUtil(current->left, memberToAdd);
+		}
+
+	}
+	else{
+
+		if (current->right == NULL){
+
+			current->right = memberToAdd;
+			return 1;
+		}
+		else{
+			return addMemberUtil(current->right, memberToAdd);
+		}
+	}
+
+
+}	
+
+int addParameter(member* function, member* param)
+{
+    return addMemberUtil(function, param);
+}
+
+
 
 memberLL*  getToTail(memberLL* ll){
 
@@ -98,30 +175,7 @@ int memberExists(structure* s, char* memberName){
 
 
 
-int memberExistsUtil(member* current, char* memberName){
 
-
-	if (current == NULL){
-
-		return 0;
-	}
-
-	int comparison = strcmp(memberName, current->name);
-
-	if (comparison == 0){
-
-		return 1;
-	}
-	else if (comparison < 0){
-
-		return memberExistsUtil(current->left, memberName);
-	}
-	else{
-		return memberExistsUtil(current->right, memberName);
-	}
-
-
-}	
 
 
 
@@ -138,13 +192,6 @@ int addMember(structure* s, member* memberToAdd){
 //Need to also remove, good for demo purposes.
 //remove instead of create. but same everything else.
 
-int deleteAllMembers(structure* s){
-
-
-	deleteAllUtil(s->members);
-	s->members = NULL;	
-}
-
 void deleteAllUtil(member* root){
 
 	if (root == NULL) return;
@@ -152,6 +199,63 @@ void deleteAllUtil(member* root){
 	deleteAllUtil(root->left);
 	deleteAllUtil(root->right);
 	free(root);
+}
+
+
+int deleteAllMembers(structure* s){
+
+
+	deleteAllUtil(s->members);
+	s->members = NULL;	
+}
+
+
+
+int removeMemberUtil(member* current, member* memberToRemove){
+
+	if (current == NULL){
+
+
+		return 0;
+	}
+
+	char* memberName = memberToRemove->name;
+
+	int comparison = strcmp(memberName, current->name);
+	int found;
+
+	//Will do this differently.
+
+	if (comparison == 0){
+
+		//found it.
+		return 1;
+	}
+	else if (comparison < 0 ){
+
+
+
+		found = removeMemberUtil(current->left, memberToRemove);
+
+		if (found == 1){
+
+			free(current->left);
+			current->left = NULL;
+			return 2;
+		}
+
+	}
+	else{
+		found = removeMemberUtil(current->right, memberToRemove);
+		
+		if (found == 1){
+
+			free(current->right);
+			current->right = NULL;
+			return 1;
+		}
+
+	}
 }
 
 int removeMember(structure* s, member* memberToRemove){
@@ -207,96 +311,5 @@ int removeMember(structure* s, member* memberToRemove){
 
 }
 
-int removeMemberUtil(member* current, member* memberToRemove){
-
-	if (current == NULL){
 
 
-		return 0;
-	}
-
-	char* memberName = memberToRemove->name;
-
-	int comparison = strcmp(memberName, current->name);
-	int found;
-
-	//Will do this differently.
-
-	if (comparison == 0){
-
-		//found it.
-		return 1;
-	}
-	else if (comparison < 0 ){
-
-
-
-		found = removeMemberUtil(current->left, memberToRemove);
-
-		if (found == 1){
-
-			free(current->left);
-			current->left = NULL;
-			return 2;
-		}
-
-	}
-	else{
-		found = removeMemberUtil(current->right, memberToRemove);
-		
-		if (found == 1){
-
-			free(current->right);
-			current->right = NULL;
-			return 1;
-		}
-
-	}
-}
-
-
-int addMemberUtil(member* current, member* memberToAdd){
-
-
-
-	if (current == NULL){
-
-
-		return 0;
-	}
-
-	char* memberName = memberToAdd->name;
-	
-	int comparison = strcmp(memberName, current->name);
-
-	if (comparison == 0){
-
-		//Already existed
-		return 0;
-	}
-	else if (comparison < 0){
-
-		if (current->left == NULL){
-
-			current->left = memberToAdd;
-			return 1;
-		}
-		else{
-			return memberExistsUtil(current->left, memberName);
-		}
-
-	}
-	else{
-
-		if (current->right == NULL){
-
-			current->right = memberToAdd;
-			return 1;
-		}
-		else{
-			return memberExistsUtil(current->right, memberName);
-		}
-	}
-
-
-}	
