@@ -146,8 +146,8 @@ void writeToFile(ReadyToWrite *s){
 
 	FILE *variableWriter = fopen(fileName,"w");
 
-	//offset in bytes not new lines.
-	int offSet = 0;
+	//offset in bytes not new lines, starting at 3 for class name and curly braces
+	int offSet = 3;
 
 	//Restart at beginning. 
 	fseek(fp, 0,0);
@@ -177,7 +177,8 @@ void writeToFile(ReadyToWrite *s){
 		free(includeString);
 	}
 
-	char* className = (char*)malloc(strlen("class ") + strlen(s->className)) + 1;
+	char* className = (char*)malloc(strlen("class ") + strlen(s->className)) + 3;
+	char* originalPtr = className;
 	strcat(className, "class ");
 	strcat(className,s->className);
 	strcat(className, "\n");
@@ -186,8 +187,8 @@ void writeToFile(ReadyToWrite *s){
 
 	fputs(className, fp);
 
-	free(className);
-	
+//	free(originalPtr);
+		
 	fputs("{\n",fp);
 
 
@@ -196,7 +197,7 @@ void writeToFile(ReadyToWrite *s){
 
 
 	//I wonder if fseek goes over new lines
-	fseek(variableWriter, offSet, 0);
+	fseek(variableWriter, 0, 0);
 	fseek(functionWriter, offSet + 1, 0);
 
 	memberLL* members = s->members;
@@ -217,8 +218,9 @@ void writeToFile(ReadyToWrite *s){
 
 		//Depending on type, write using respecting fp.
 		
-		//+ 2 for semicolon and new line.
-		int buffer = strlen(members->data->type) + strlen(members->data->metaInfo) + strlen(members->data->name) + strlen(accessSpecifier) + 2;
+		//+ 5 for semicolon and new line, and spaces
+		int buffer = strlen(members->data->type) + strlen(members->data->metaInfo) + strlen(members->data->name) + 
+		strlen(accessSpecifier) + 5;
 
 		
 		if (memberType == FUNCTION){
@@ -289,17 +291,18 @@ void writeToFile(ReadyToWrite *s){
 			char* dest = (char*)malloc(buffer);
 
 			strcat(dest, accessSpecifier);
-			strcat(dest, members->data->metaInfo);
+			strcat(dest, " ");
 			strcat(dest, members->data->type);
+			strcat(dest, " ");
 			strcat(dest, members->data->name);
 			strcat(dest,";\n");
 		
 			//Then write to file.
-			fputs(dest,variableWriter);
+			fputs(dest,fp);
 		
 			//Then move functionPointer down a line.
-			fputc('\n',functionWriter);
-
+			fseek(functionWriter,1, 2);
+			fseek(fp, strlen(dest), 2);
 			free(dest);
 		}
 
@@ -314,9 +317,7 @@ void writeToFile(ReadyToWrite *s){
 	fclose(variableWriter);
 
 	//from 1 off end of file.
-	fseek(fp, 1, 3);
-
-	fputs("};\n",fp);
+	fputs("}\n", fp);
 
 	fclose(fp);
 }

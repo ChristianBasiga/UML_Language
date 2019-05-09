@@ -1,6 +1,5 @@
 create class a
-print a all
-delete a
+create + int var > a
 print a all
 
 
