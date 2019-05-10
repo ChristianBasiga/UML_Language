@@ -159,15 +159,17 @@ void dfsMembers(member* root, memberLL* ll){
 }
 memberLL* getMembers(structure* s){
 	
+
+	if (s->members == NULL) return NULL;
 	//Head for this has no actual data.
 	memberLL* ll = (memberLL*)malloc(sizeof(memberLL));
 
-	
+		
 		
 	member* root = s->members;
-
 	dfsMembers(root, ll);
-	
+
+		
 
 	return ll->next;
 }

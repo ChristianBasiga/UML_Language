@@ -95,7 +95,7 @@ int createStructure(char* structureName, char* type){
 	s->members = NULL;
 	s->name = structureName;
 	structureType stype = CLASS;
-
+	
 	if (strcmp(type, "interface") == 0){
 
 		stype = INTERFACE;

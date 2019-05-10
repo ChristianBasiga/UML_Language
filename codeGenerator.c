@@ -28,7 +28,7 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 
 		//They can point to same string in memory.
 		data->className = s->name;
-
+		
 		connection* connections = current->connections;
 		int includeCount = 0;
 
@@ -116,8 +116,9 @@ void writeToFile(ReadyToWrite *s){
 
 	
 	char* fileName = (char*)malloc(strlen(s->className) + 3);
-	strcat(fileName, s->className);
+	strcpy(fileName, s->className);
 	strcat(fileName,".h");
+	printf("file name writing is [%s]\n", fileName);
 	FILE *fp = fopen(fileName, "w");
 
 	//First write new lines equal 
@@ -175,10 +176,9 @@ void writeToFile(ReadyToWrite *s){
 	}
 
 	char* className = (char*)malloc(strlen("class ") + strlen(s->className) +3);
-	className = strcat(className, "class ");
+	strcpy(className, "class ");
 	className = strcat(className,s->className);
 	className = strcat(className, "\n");
-
 	offSet += strlen(className);	
 
 	fputs(className, fp);
@@ -194,26 +194,27 @@ void writeToFile(ReadyToWrite *s){
 	FILE *variableWriter = fp;
 
 
+/*
 	for(int i = 0; i < lineCount + offSet; ++i){
 
 
 		fputc('\n', fp);
 	}
+*/
 
 
 
-
-	fseek(functionWriter, offSet + 1, 0);	
+	//fseek(functionWriter, offSet + 1, 0);	
 	//I wonder if fseek goes over new lines
-	fseek(variableWriter, offSet, 0);
+//	fseek(variableWriter, offSet, 0);
 
 	memberLL* members = s->members;
 
-	puts("getting here?");
 	
 	//If i do get members, I'm essentially traversing it twice though, could just do dfs, then do this at each stuff, makes
 	//writing into file harder though.
 	while (members != NULL){
+
 
 
 		int memberType = members->data->mt;
@@ -234,13 +235,15 @@ void writeToFile(ReadyToWrite *s){
 
 
 			//Then extra buffer for paranthesis and  parameters.
-			buffer += 2 + 400;
+			//prob cause of this buffer space.
+			//buffer += 15;
 
+			
+			buffer += 5;
 
-
+			//Could have dest for header then dest for params.
 			char* dest = (char*)malloc(buffer);
-
-			strcat(dest,"\t");
+			strcpy(dest,"\t");
 			strcat(dest, accessSpecifier);
 			strcat(dest, " ");
 //			strcat(dest, members->data->metaInfo);
@@ -251,50 +254,63 @@ void writeToFile(ReadyToWrite *s){
 			strcat(dest, members->data->name);
 			strcat(dest,"(");
 
-
+			fputs(dest,fp);
 		
 			//Gotta refactor alot cause is tedious like this.
+
+			
 			member* parameters = members->data->parameters;
 
 			if (parameters != NULL){
 				
-				puts("here? yeah");
+				//If buffer is issue would need to run through params twice to get exact cunt
 			
-			MemberQueue* root = (MemberQueue*)malloc(sizeof(MemberQueue));
-			root->data = parameters;
+				MemberQueue* root = (MemberQueue*)malloc(sizeof(MemberQueue));
+				root->data = parameters;
 
-			root->next = NULL;
+				root->next = NULL;
 
-			//Then gotta write parameters.
-			//Bfs of parameters.
-			while (root != NULL){
+				//Then gotta write parameters.
+				//Bfs of parameters.
+				while (root != NULL){
 	
-				printf("[%s]\n", root->data->name);
+		
+
+					//Actually can put back to dst stuff had before, as long as strcpy nothing
+					//to dest first it won't have previous entry stuff. It works as is so some extra I/o calls
+					//not big deal.	
+					char* parameterString = (char*)malloc(strlen(root->data->type) + strlen(root->data->name) + 2);	
+					//Write root's information.
+					strcpy(parameterString,"");
+					strcat(parameterString, root->data->type);
+					strcat(parameterString, " ");
+					strcat(parameterString, root->data->name);
+					
+					printf("Current parameter string [%s]\n", parameterString);
+
+					//Then pop off root
+					addToQueue(root, root->data->left);
+					addToQueue(root, root->data->right);
 				
-				//Write root's information.
-				strcat(dest, root->data->type);
-				strcat(dest, " ");
-				strcat(dest, root->data->name);
+					if (root->next != NULL)
+						strcat(parameterString,",");
 
-				if (root->next != NULL)
-					strcat(dest,",");
+					MemberQueue* prevRoot = root;
+					root = root->next;
+		
+					//More I/O write this way instead of huge batches, but if it fixes issue.
+					//it fixed issue
+					fputs(parameterString,fp);
+					free(parameterString);
+					free(prevRoot);
 
-				//Then pop off root
-				addToQueue(root, root->data->left);
-				addToQueue(root, root->data->right);
-
-				MemberQueue* prevRoot = root;
-				root = root->next;
-
-				free(prevRoot);
+				}
 
 			}
+			fputs(")\n", fp);
 
-			}
-
-			strcat(dest,");\n");
 			
-			fputs(dest, fp);
+		//	fputs(cutDown, fp);
 			free(dest);
 							
 

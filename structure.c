@@ -74,7 +74,7 @@ structure_trie* getNode(){
 
 		newNode->children[i] = NULL;
 	}
-
+	
 	newNode->data = NULL;
 	return newNode;
 
