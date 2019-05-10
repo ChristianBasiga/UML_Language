@@ -5,16 +5,24 @@
 #include <string.h>
 
 
-void writeToFile(ReadyToWrite* s);
+void writeHeaderFile(ReadyToWrite* s);
 
 void generateCode(structure_trie* root, relationship* relationshipGraph){
 
 	//Parses code to ReadyToWrite struct
-	
+
+	//Could make a main to actually test compilation.
+	//then make it have includes of each one. 	
 
 	ReadyToWriteLL* ll = NULL;
 	relationship* current = relationshipGraph;
 
+	system("mkdir output");	
+	//Make a main.
+	FILE *fp = fopen("output/main.cpp","w");
+
+	//First thing to do is write in all of the includes.
+	char* include = "#include \"";
 	while (current != NULL){
 
 
@@ -28,6 +36,15 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 
 		//They can point to same string in memory.
 		data->className = s->name;
+		
+		char* toInclude = (char*)malloc(strlen(include) + strlen(s->name) + 2);
+		strcpy(toInclude,include);
+		strcat(toInclude,s->name);
+		strcat(toInclude,".h");
+		strcat(toInclude,"\"\n");
+		fputs(toInclude, fp);
+		free(toInclude);
+		
 		
 		connection* connections = current->connections;
 		int includeCount = 0;
@@ -47,13 +64,25 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 		data->memberCount = getAmountOfMembers(s);
 		ll->data = data;
 
-		writeToFile(data);
+		writeHeaderFile(data);
 		ll = ll->next;
 
 		//Start thread to write to file, for now just in one go. In hindsight don't need linkedlist
 		current = current->next;
 		free(data);
 	}
+
+	char* mainString = "int main()\n";
+	
+	char* mainFunction = (char*)malloc(strlen(mainString) + 3);
+
+	strcpy(mainFunction, mainString);
+
+	strcat(mainFunction, "{\n}");
+	
+	fputs(mainFunction, fp);
+	
+	fclose(fp);
 
 
 }
@@ -111,67 +140,65 @@ void addToQueue(MemberQueue* root, member* toAdd){
 
 }
 
-void writeToFile(ReadyToWrite *s){
+void writeHeaderFile(ReadyToWrite *s){
 
 
-	
-	char* fileName = (char*)malloc(strlen(s->className) + 3);
-	strcpy(fileName, s->className);
+	char* fileName = (char*)malloc(strlen("output/") + strlen(s->className) + 3);
+	strcpy(fileName,"output/");
+	strcat(fileName, s->className);
 	strcat(fileName,".h");
 	printf("file name writing is [%s]\n", fileName);
 	FILE *fp = fopen(fileName, "w");
 
-	//First write new lines equal 
-	//Everytime one of them writes, increment both, but if thread both, then makes it complicated.
-	//but otherwise could add a buffer between them but that would waste space.
+	static char* ifndef = "#ifndef ";
+	static char* def = "#define ";
+	static char* endif = "#endif ";
 
-	int lineCount  =  s->memberCount;
-	lineCount += s->includeCount;
+	char* ifndefThis = (char*)malloc(strlen(ifndef) + strlen(s->className) + 2);
+	strcpy(ifndefThis, ifndef);
 	
-	//Then + 3 for name and curly braces and 2 more incase of amount of implements / inherits
-	
-	lineCount += 5;
+	strcat(ifndefThis, s->className);
+	strcat(ifndefThis,"_h\n");
 
+	fputs(ifndefThis, fp);
+	free(ifndefThis);
+	ifndefThis = (char*)malloc(strlen(def) + strlen(s->className) + 2);
+	strcpy(ifndefThis, def);
+	strcat(ifndefThis, s->className);
+	strcat(ifndefThis,"_h\n");
+	fputs(ifndefThis,fp);
+	free(ifndefThis);
 
-	//Also needs lines for all of the includes,
-	//need another structure that puts all that into one place for easy writing.
-
-
-//Need public pointer and private pointer to, unless prefix everything with : lmao
-//which would be stupid, but would work. But then don't actually need includes if do in java
-//well needed for imports, from other packages.
-
-	//Starting at one off from each other, buffer inbetween being number of members total.
-	
-
-	//offset in bytes not new lines, starting at 3 for class name and curly braces
-	int offSet = 3;
-
-	//Restart at beginning. 
-	fseek(fp, 0,0);
 
 	//write includes.
 	
 	connection* currentInclude = s->includes;
+	
+	//Got it working with includes for other classes
+	//but need to differentate primitives and std stuff so that I can include those respectively.
+	//many additions can be amde to this.
+	
+	char* include = "#include \" ";
+	
 
 	while (currentInclude != NULL){
 
-		int includeBuffer = strlen("#include \"\"") + strlen(currentInclude->identifier);
+		int includeBuffer = strlen(include) + strlen(currentInclude->identifier) + 2;
 
 		char* includeString = (char*)malloc(includeBuffer);
 	
-		strcat(includeString,"include \"\"");
+		strcpy(includeString, include);
 		strcat(includeString, currentInclude->identifier);
-
+		
 		//Catting the literal should should give it the null terminator.
-		strcat(includeString, "\n");
-		currentInclude = currentInclude->next;
+		strcat(includeString, "\"\n");
+		
 		fputs(includeString, fp);
 		
 
 
-		offSet += strlen(includeString);
 
+		currentInclude = currentInclude->next;
 		free(includeString);
 	}
 
@@ -179,7 +206,6 @@ void writeToFile(ReadyToWrite *s){
 	strcpy(className, "class ");
 	className = strcat(className,s->className);
 	className = strcat(className, "\n");
-	offSet += strlen(className);	
 
 	fputs(className, fp);
 
@@ -307,10 +333,8 @@ void writeToFile(ReadyToWrite *s){
 				}
 
 			}
-			fputs(")\n", fp);
-
 			
-		//	fputs(cutDown, fp);
+			fputs(");\n", fp);
 			free(dest);
 							
 
@@ -318,9 +342,9 @@ void writeToFile(ReadyToWrite *s){
 		else if (memberType == VARIABLE){
 
 
-			char* dest = (char*)malloc(buffer + 1);
+			char* dest = (char*)malloc(buffer + 5);
 
-			strcat(dest,"\t");
+			strcpy(dest,"\t");
 			strcat(dest, accessSpecifier);
 			strcat(dest, " ");
 			strcat(dest, members->data->type);
@@ -346,7 +370,9 @@ void writeToFile(ReadyToWrite *s){
 
 
 	//from 1 off end of file.
+	
 	fputs("};\n", fp);
+	fputs(endif, fp);	
 
 	fclose(fp);
 }

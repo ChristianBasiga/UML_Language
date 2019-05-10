@@ -1,10 +1,10 @@
 create class c
 create - int var > c
 create + int foo() > c
-create + c key(string s string f) > c
-create * string get(int x) > c
+create + c key(int s int f) > c
+create * char get(int x) > c
 
-create * string ff > c
+create * int ff > c
 
 create class a
 

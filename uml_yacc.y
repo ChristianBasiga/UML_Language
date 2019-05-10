@@ -7,10 +7,6 @@
 #include "relationships.h"
 #include "codeGenerator.h"
 
-//Will convert below to C++ likely instead of C, much easier to work with.
-//Will store identifiers in bst or trie. To reuse characters, I will build a trie instead
-//for now static 26.
-
 int removeMember(structure* s, member* m);
 
 //Store them in trie, but just making this to store all that stored
@@ -70,7 +66,7 @@ int printStructure(char* structureName, char* options){
 
 
 
-	printf("%s %s\n", structureTypeName, structureName);
+//	printf("%s %s\n", structureTypeName, structureName);
 	
 	//Todo: Iterate through graph and display parents and children
 
@@ -300,7 +296,7 @@ command:
 	/*Virtually the same apart form function literally needing func in it and var not.*/
 	COMMAND ACCESS function RELATION IDENTIFIER
 	{
-		puts("here");
+//		puts("here");
 		
 		if (strcmp($1, "create") != 0){
 			YYABORT;
@@ -319,7 +315,7 @@ command:
 	|
 	COMMAND ACCESS variable  RELATION IDENTIFIER 
 	{
-		puts("here instead");
+//		puts("here instead");
 		//Add update here too
 		if (strcmp($1, "create") != 0){
 			YYABORT;
@@ -337,10 +333,6 @@ command:
 	|
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
-
-
-
-		printf("[%p]\n", $2);
 
 		if (strcmp($1,"print") == 0){
 
@@ -393,7 +385,6 @@ command:
 	
 	COMMAND UML identifier_list RELATION IDENTIFIER 
 	{
-		puts("here?");
 		//Both identifiers here must refer to structure.
 		//Same as below, use symbol table with command bst with nodes of function pointers.
 		//Much cleaner than if else ifs
@@ -500,7 +491,6 @@ command:
 	}
       ;
 function:
-
 /*
 	FUNC meta_data data_type IDENTIFIER LEFTP RIGHTP{
 
@@ -523,7 +513,6 @@ function:
 		m->parameters = NULL;
 
 	}
-
 	|
 	variable LEFTP variables RIGHTP
  	{
@@ -561,7 +550,7 @@ function:
 variables:
 	|
 	variables variable
-    {
+    	{
 		//This should be list of stuf.
 		
 		if ($1->data == NULL){
@@ -588,7 +577,7 @@ variables:
 		}
 	}
 	;
-	/*So this is problem, since this part is in function, it reduces to variable, which is a problem cause then it causes a syntax error*/
+
 variable:
 	meta_data data_type IDENTIFIER{
 		
@@ -650,6 +639,9 @@ identifier_list:
 			$$ = $1;
 			
 		}
+		//Mainly used for staying all these structures inherit from this one structure, or put all of these variables in here.
+		//Maybe make it so variables can be declared outside then inserted in later, but then what would I write to file? Just a global variable.
+		
 		//result should be concat of all identifiers
 		
 	}
