@@ -1,0 +1,11 @@
+create private int var > c
+create public int foo() > c
+create + c key(string s string f) > c
+create * string get(int x) > c
+
+create * string ff > c
+
+create class a
+
+create class c
+create + int vars > c

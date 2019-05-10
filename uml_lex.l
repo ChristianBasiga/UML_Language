@@ -43,5 +43,6 @@ all|parents|children	{assignToString(); return PRINT_SPECIFICATION;}
 [ \t]	;
 \(			{return LEFTP;}
 \)			{return RIGHTP;}
+.			{printf("Unrecognized token %s\n", yytext); exit(0);}
 %%
 

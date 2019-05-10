@@ -616,6 +616,7 @@ data_type:
 		} 
 		else{
 			printf("%s is not a defined structure nor a built in type\n", $1);
+			YYABORT;
 		}
 	}
 	;
