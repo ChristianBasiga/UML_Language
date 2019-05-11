@@ -14,23 +14,19 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	//Could make a main to actually test compilation.
 	//then make it have includes of each one. 	
 
-	ReadyToWriteLL* ll = NULL;
 	relationship* current = relationshipGraph;
 
-	//Reroute error stream to this
+	//Reroute error stream to logs
 	system("mkdir output 2> logs");	
 	//Make a main.
 	FILE *fp = fopen("output/main.cpp","w");
 
-	//First thing to do is write in all of the includes.
+	//First thing to do is write in all of the includes, then generate corresponding .h files.
 	char* include = "#include \"";
 	while (current != NULL){
 
 
 		printf("Looking at relationships of %s\n", current->identifier);
-		ll  = (ReadyToWriteLL*)malloc(sizeof(ReadyToWriteLL));
-
-		ll->next = NULL;
 
 		ReadyToWrite* data = (ReadyToWrite*)malloc(sizeof(ReadyToWrite));
 		
@@ -52,25 +48,25 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 		int includeCount = 0;
 
 		data->includes = connections;
-		while (connections != NULL){
+
+		//No longer needed atm, but for organizing methods and methods
+		//need to create buffer and in that instance this is needed.
+	/*	while (connections != NULL){
 		
 			includeCount += 1;
 			printf("connection %s\n", connections->identifier);
 			connections = connections->next;
 		}
 
-
+		*/
 		//For buffering purposes in writing files.
 		data->includeCount = includeCount;
 		data->members = getMembers(s);
 		data->memberCount = getAmountOfMembers(s);
-		ll->data = data;
 
 		writeHeaderFile(data);
-		ll = ll->next;
 
 		//Start thread to write to file, for now just in one go. In hindsight don't need linkedlist
-		current = current->next;
 		free(data);
 	}
 
@@ -81,7 +77,10 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	strcpy(mainFunction, mainString);
 
 	strcat(mainFunction, "{\n}");
+	free(mainFunction);
 
+
+	
 	//Then inbetween here. Maybe add stuff to main
 	//Maybe queue up sequence diagrams till after all done or let c++ compiler deal with that.
 	
@@ -113,7 +112,6 @@ char* parseAccessSpecifier(char accessChar){
 	else{
 			specifier = (char*)malloc(strlen("protected:"));
 			strcpy(specifier, "protected:");
-
 	}
 
 	return specifier;
@@ -162,16 +160,17 @@ void writeHeaderFile(ReadyToWrite *s){
 
 	char* ifndefThis = (char*)malloc(strlen(ifndef) + strlen(s->className) + 2);
 	strcpy(ifndefThis, ifndef);
-	
 	strcat(ifndefThis, s->className);
 	strcat(ifndefThis,"_h\n");
 
 	fputs(ifndefThis, fp);
 	free(ifndefThis);
 	ifndefThis = (char*)malloc(strlen(def) + strlen(s->className) + 2);
+	
 	strcpy(ifndefThis, def);
 	strcat(ifndefThis, s->className);
 	strcat(ifndefThis,"_h\n");
+	
 	fputs(ifndefThis,fp);
 	free(ifndefThis);
 
@@ -220,13 +219,12 @@ void writeHeaderFile(ReadyToWrite *s){
 	fputs("{\n",fp);
 
 
-	//TODO: start using registers instead of main memory.
-
+/*
 	FILE *functionWriter = fp;
 	FILE *variableWriter = fp;
 
+	Originally for organzing them, by seeking into different points on file.
 
-/*
 	for(int i = 0; i < lineCount + offSet; ++i){
 
 
@@ -234,17 +232,8 @@ void writeHeaderFile(ReadyToWrite *s){
 	}
 */
 
-
-
-	//fseek(functionWriter, offSet + 1, 0);	
-	//I wonder if fseek goes over new lines
-//	fseek(variableWriter, offSet, 0);
-
 	memberLL* members = s->members;
-
 	
-	//If i do get members, I'm essentially traversing it twice though, could just do dfs, then do this at each stuff, makes
-	//writing into file harder though.
 	while (members != NULL){
 
 		printf("member looking at %s\n", members->data->name);
@@ -269,8 +258,6 @@ void writeHeaderFile(ReadyToWrite *s){
 			//Then extra buffer for paranthesis and  parameters.
 			//prob cause of this buffer space.
 			//buffer += 15;
-
-			
 			buffer += 5;
 
 			//Could have dest for header then dest for params.
@@ -329,9 +316,7 @@ void writeHeaderFile(ReadyToWrite *s){
 
 					MemberQueue* prevRoot = root;
 					root = root->next;
-		
-					//More I/O write this way instead of huge batches, but if it fixes issue.
-					//it fixed issue
+					
 					fputs(parameterString,fp);
 					free(parameterString);
 					free(prevRoot);

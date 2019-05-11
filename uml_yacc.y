@@ -81,11 +81,6 @@ int printStructure(char* structureName, char* options){
 	}
 
 
-
-//	printf("%s %s\n", structureTypeName, structureName);
-	
-	//Todo: Iterate through graph and display parents and children
-
 	memberLL* members = getMembers(s);
 
 	memberLL* current = members;
@@ -149,7 +144,6 @@ int addMemberToStructure(char* structureName, member* toAdd){
 //int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access){
 
 
-
 	//Getting structure.
 	structure* s = getStructure(sTrie, structureName);
 	
@@ -160,7 +154,6 @@ int addMemberToStructure(char* structureName, member* toAdd){
 
 	//So along with adding member, I want to add to relationship graph, if datatype was structure.
 
-	
 	int isClass = structureExists(sTrie,toAdd->type);
 	printf("Is member %s a class: %d\n",toAdd->type, isClass);
 
@@ -170,15 +163,14 @@ int addMemberToStructure(char* structureName, member* toAdd){
 
 	}
 
-	//member* m = getMemberNode(memberName);
-
+	//Order shouldn't matter here, ideally..... WELL i mean that's more ux cause I could either construct relationship graph
+	//before or after. Also if just allow any type to be specified c++ compiler can just detect and throw error itself.
+	//but the part that will draw the UML images requires the info.
 	int added = addMember(s, toAdd);
 
 	return added;
 
 }
-
-
 
 int deleteAStructure(char* structureName){
 
@@ -239,18 +231,54 @@ int yywrap(){
 
 
 
+void cleanup(){
+
+	relationship* current = relationshipGraph;
+
+
+	while (current != NULL){
+
+		//get rid of all connections. Pointing to same string, so only connections themselves need to be.
+		connection* currentConn = current->connections;
+		while (currentConn != NULL){
+
+			connection* prev = currentConn;
+			currentConn = currentConn->next;
+			free(prev); 
+
+		}
+
+		//Cleans up structure, then clean up members of it, then this relationship.
+		deleteStructure(sTrie, current->identifier);
+		free(current->identifier);
+
+		relationship* prev = current;
+
+		current = current->next;
+
+		free(prev);
+
+	}	
+
+	free(relationshipGraph);
+	free(sTrie);
+
+}
+
 int main(){
 
 	sTrie = getNode();
 	relationshipGraph = NULL;
 	yyparse();
 
-
-	//Hindsight, yacc should end after the parse, it should fork and 
-	//and pass in this info, for testing purposes will just put here.
-	//Todo: Generate code based on trie, and relationship graph.
+	//Creates the cpp files.
 	generateCode(sTrie, relationshipGraph);
 
+
+	//Clean up.
+	cleanup();
+	
+	
     return 0;
 }
 
@@ -323,7 +351,6 @@ command:
 	/*Virtually the same apart form function literally needing func in it and var not.*/
 	COMMAND ACCESS function RELATION IDENTIFIER
 	{
-//		puts("here");
 		
 		if (strcmp($1, "create") != 0){
 			YYABORT;
@@ -342,8 +369,6 @@ command:
 	|
 	COMMAND ACCESS variable  RELATION IDENTIFIER 
 	{
-//		puts("here instead");
-		//Add update here too
 		if (strcmp($1, "create") != 0){
 			YYABORT;
 		}
@@ -358,6 +383,7 @@ command:
 		}
 	}
 	|
+	//For debugging purposes.
 	COMMAND identifier_list PRINT_SPECIFICATION 
 	{
 
@@ -379,6 +405,7 @@ command:
 		}
 	}
 	|
+	//Hindsight not really needed lol.
 	COMMAND identifier_list
 	{
 
@@ -482,16 +509,7 @@ command:
 				IdentifierNode* current = $2;
 
 				while (current != NULL){
-				//Then here iterate through rest.
 					char* other = current->identifier;	
-				//But what if it is both a structure and a member.
-				//ambigiouity in functionality and syntax here,
-				//need to rethink syntax and grammar
-
-				//instead of checking isStructure, should check if member exists within structure
-				//for each one
-					
-					//Otherwise assume is member > structure, and try to delete.
 					deleted = deleteMemberFromStructure($4, other);
 					if (deleted){
 
@@ -534,7 +552,7 @@ function:
 	variable LEFTP RIGHTP{
 
 
-		puts("no parameter method");
+	//	puts("no parameter method");
 		member* m = $1;
 		m->mt = FUNCTION;
 		m->parameters = NULL;
@@ -545,7 +563,7 @@ function:
  	{
 
 
-		puts("with param method");
+	//	puts("with param method");
 		//Initialize params.
 	
 		member* m = $1;
@@ -558,16 +576,6 @@ function:
 			puts("here???");		
 			addParameter(m, params->data);	
 			params = params->next;
-		}
-
-		if (m->parameters == NULL){
-
-			puts("here? though");
-
-		}
-		else{
-
-			puts("here! though");
 		}
 
 		$$ = m;
@@ -583,7 +591,6 @@ variables:
 		
 		if ($1->data == NULL){
 
-				puts("I gotta happen in this instance");	
 
 				$1->data = $2;
 				$1->next = NULL;
@@ -591,7 +598,6 @@ variables:
 		}
 		else{
 
-				puts("here then?");
 			//Otherwise add to list.
 			ParamList* current = $1;
 			while (current->next != NULL){

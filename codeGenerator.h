@@ -43,13 +43,6 @@ typedef struct ReadyToWrite{
 
 } ReadyToWrite;
 
-typedef struct ReadyToWriteLL{
-
-	struct ReadyToWriteLL* next;
-
-	ReadyToWrite* data;
-} ReadyToWriteLL;
-
 typedef struct MemberQueue{
 
 
