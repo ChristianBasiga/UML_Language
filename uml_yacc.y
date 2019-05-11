@@ -544,6 +544,7 @@ function:
 	variable LEFTP variables RIGHTP
  	{
 
+
 		puts("with param method");
 		//Initialize params.
 	

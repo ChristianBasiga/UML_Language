@@ -9,3 +9,6 @@ create * int ff > c
 create class a
 
 create + a vars > c
+
+create + a var > a
+create - c sdfs > a

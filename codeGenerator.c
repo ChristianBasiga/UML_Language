@@ -153,6 +153,7 @@ void writeHeaderFile(ReadyToWrite *s){
 	strcat(fileName, s->className);
 	strcat(fileName,".h");
 	printf("file name writing is [%s]\n", fileName);
+
 	FILE *fp = fopen(fileName, "w");
 
 	static char* ifndef = "#ifndef ";
@@ -246,7 +247,7 @@ void writeHeaderFile(ReadyToWrite *s){
 	//writing into file harder though.
 	while (members != NULL){
 
-
+		printf("member looking at %s\n", members->data->name);
 
 		int memberType = members->data->mt;
 
