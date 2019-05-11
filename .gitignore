@@ -5,3 +5,5 @@ a.out
 lex.yy.c
 *.swp
 umlCompiler
+logs
+output/*
