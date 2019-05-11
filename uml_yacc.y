@@ -42,6 +42,22 @@ typedef struct ParamList{
 
 } ParamList;
 
+
+//Perhaps move this to member class and have it,
+//would require me to modify alot though.
+//Could avoid it, but that would require an extra check on structure existing, which I mean
+//not big deal. Potentially not huge traversal.
+/*
+typedef struct DataType{
+
+	int isClass;
+	char* name;
+
+} DataType;
+
+For completion check will just do check again
+*/
+ 
 int yydebug = 1;
 
 structure_trie* sTrie;
@@ -129,7 +145,7 @@ int createStructure(char* structureName, char* type){
 
 }
 
- int addMemberToStructure(char* structureName, member* toAdd){
+int addMemberToStructure(char* structureName, member* toAdd){
 //int addMemberToStructure(char* structureName, char* memberName, char* data_type, char* metaData, char access){
 
 
@@ -142,6 +158,17 @@ int createStructure(char* structureName, char* type){
 		return 0;
 	}
 
+	//So along with adding member, I want to add to relationship graph, if datatype was structure.
+
+	
+	int isClass = structureExists(sTrie,toAdd->type);
+	printf("Is member %s a class: %d\n",toAdd->type, isClass);
+
+	if (isClass && strcmp(s->name, toAdd->type) != 0){
+
+		addRelationship(relationshipGraph, s->name, toAdd->type, COMPOSITION);
+
+	}
 
 	//member* m = getMemberNode(memberName);
 
@@ -240,10 +267,10 @@ int main(){
 	char symbol[2];
 	char character;
 	struct IdentNode* identifiers;
+//	struct DataType* dataType;
 };
 
 %token LEFTP RIGHTP;
-%token <string> FUNC;
 %token <character> ACCESS;
 %token <character> UML;
 %token <string> IDENTIFIER;
@@ -594,13 +621,24 @@ meta_data:
 	;
 data_type:
 	DATA_TYPE
+	{
+		//DataType* dt = (DataType*)malloc(sizeof(DataType));
+		//dt->isClass = 0;
+		//dt->name = $1;
+		$$ = $1;
+
+	}
 	|
 	IDENTIFIER
 	{
 		//Makes sure identifier exists and is of a type.
 		int isStructure = structureExists(sTrie,$1);
 
+		//Somehow make that distinction here
 		if (isStructure){
+			/*DataType* dt = (DataType*)malloc(sizeof(DataType));
+			dt->isClass = 1;
+			dt->name = $1;*/
 			$$ = $1;
 		} 
 		else{

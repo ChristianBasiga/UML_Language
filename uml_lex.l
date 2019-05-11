@@ -30,7 +30,6 @@ void assignToSymbol(){
 %}
 
 %%
-func		{return FUNC;}
 uml			{return UML;}
 class|interface		{assignToString(); return STRUCTURE;}
 char|void|int|float|string	{assignToString(); return DATA_TYPE;}

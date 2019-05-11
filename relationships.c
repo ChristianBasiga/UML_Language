@@ -106,7 +106,7 @@ int addRelationship(relationship* root, char* from, char* to, relationship_type 
 		
 		
 		int comparison = strcmp(current->identifier, from);
-
+		puts("get here");
 		//To speed up relationships creation and deletion.
 		//could be bsts of bsts, but how many relationships will there be really.
 		//Just note that is optimization could make.
@@ -116,12 +116,13 @@ int addRelationship(relationship* root, char* from, char* to, relationship_type 
 		
 		if (comparison == 0){
 
+			puts("what about here");
 			//If found from, now add the to.
 
 			connection* newConnection = makeConnection(to, type);
 
 			connection* currentConnection = current->connections;
-
+			
 			if (currentConnection == NULL){
 
 				current->connections = newConnection;

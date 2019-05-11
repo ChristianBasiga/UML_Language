@@ -17,7 +17,8 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	ReadyToWriteLL* ll = NULL;
 	relationship* current = relationshipGraph;
 
-	system("mkdir output");	
+	//Reroute error stream to this
+	system("mkdir output 2> logs");	
 	//Make a main.
 	FILE *fp = fopen("output/main.cpp","w");
 
@@ -26,6 +27,7 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	while (current != NULL){
 
 
+		printf("Looking at relationships of %s\n", current->identifier);
 		ll  = (ReadyToWriteLL*)malloc(sizeof(ReadyToWriteLL));
 
 		ll->next = NULL;
@@ -53,7 +55,7 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 		while (connections != NULL){
 		
 			includeCount += 1;
-
+			printf("connection %s\n", connections->identifier);
 			connections = connections->next;
 		}
 
@@ -79,6 +81,9 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	strcpy(mainFunction, mainString);
 
 	strcat(mainFunction, "{\n}");
+
+	//Then inbetween here. Maybe add stuff to main
+	//Maybe queue up sequence diagrams till after all done or let c++ compiler deal with that.
 	
 	fputs(mainFunction, fp);
 	
@@ -178,7 +183,7 @@ void writeHeaderFile(ReadyToWrite *s){
 	//but need to differentate primitives and std stuff so that I can include those respectively.
 	//many additions can be amde to this.
 	
-	char* include = "#include \" ";
+	char* include = "#include \"";
 	
 
 	while (currentInclude != NULL){
@@ -191,7 +196,7 @@ void writeHeaderFile(ReadyToWrite *s){
 		strcat(includeString, currentInclude->identifier);
 		
 		//Catting the literal should should give it the null terminator.
-		strcat(includeString, "\"\n");
+		strcat(includeString, ".h\"\n");
 		
 		fputs(includeString, fp);
 		

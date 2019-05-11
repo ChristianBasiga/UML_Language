@@ -8,4 +8,4 @@ create * int ff > c
 
 create class a
 
-create + int vars > c
+create + a vars > c
