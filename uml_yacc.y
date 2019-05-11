@@ -155,7 +155,6 @@ int addMemberToStructure(char* structureName, member* toAdd){
 	//So along with adding member, I want to add to relationship graph, if datatype was structure.
 
 	int isClass = structureExists(sTrie,toAdd->type);
-	printf("Is member %s a class: %d\n",toAdd->type, isClass);
 
 	if (isClass && strcmp(s->name, toAdd->type) != 0){
 
@@ -338,11 +337,11 @@ command:
 			int created = createStructure($4, $3);
 			
 			if (created){
-				printf("created\n");
+				//printf("created\n");
 			}
 			else{
 				printf("already exists\n");
-			//	YYABORT;
+				//YYABORT;
 			}
 		}
 	}
@@ -359,8 +358,8 @@ command:
 			
 			$3->accessSpecifier = $2;
 			int added = addMemberToStructure($5,$3);
-			if (added)
-				puts("added member");
+			if (added);
+				//puts("added member");
 			else
 				puts("member exists in that structure");	
 		}
@@ -376,8 +375,8 @@ command:
 
 			$3->accessSpecifier = $2;
 			int added = addMemberToStructure($5,$3);
-			if (added)
-				puts("added member");
+			if (added);
+				//puts("added member");
 			else
 				puts("member exists in that structure");	
 		}
@@ -573,7 +572,6 @@ function:
 		
 		while (params != NULL){
 			
-			puts("here???");		
 			addParameter(m, params->data);	
 			params = params->next;
 		}

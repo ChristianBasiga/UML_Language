@@ -106,17 +106,10 @@ int addRelationship(relationship* root, char* from, char* to, relationship_type 
 		
 		
 		int comparison = strcmp(current->identifier, from);
-		puts("get here");
-		//To speed up relationships creation and deletion.
-		//could be bsts of bsts, but how many relationships will there be really.
-		//Just note that is optimization could make.
-		//If do that have to have 2 functions essentially doing the same
-		//for finding relationships and connections, so recursively find relationship
-		//then from there add or recursively find connection.	
+		
 		
 		if (comparison == 0){
 
-			puts("what about here");
 			//If found from, now add the to.
 
 			connection* newConnection = makeConnection(to, type);
@@ -188,8 +181,6 @@ int removeRelationship(relationship* root, char* from, char* to, relationship_ty
 					else*/ 
 					prev->next = currentConnection->next;
 
-					//Hmm I also shouldn't be restoring the same strings everywhere.
-					//should all point to same one, but that will make deleting harder cause gotta implement reference counting.
 					free(currentConnection->identifier);
 					free(currentConnection);
 					removed = 1;

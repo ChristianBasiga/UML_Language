@@ -26,7 +26,7 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	while (current != NULL){
 
 
-		printf("Looking at relationships of %s\n", current->identifier);
+		//printf("Looking at relationships of %s\n", current->identifier);
 
 		ReadyToWrite* data = (ReadyToWrite*)malloc(sizeof(ReadyToWrite));
 		
@@ -66,6 +66,7 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 
 		writeHeaderFile(data);
 
+		current = current->next;
 		//Start thread to write to file, for now just in one go. In hindsight don't need linkedlist
 		free(data);
 	}
@@ -77,7 +78,6 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	strcpy(mainFunction, mainString);
 
 	strcat(mainFunction, "{\n}");
-	free(mainFunction);
 
 
 	
@@ -85,15 +85,11 @@ void generateCode(structure_trie* root, relationship* relationshipGraph){
 	//Maybe queue up sequence diagrams till after all done or let c++ compiler deal with that.
 	
 	fputs(mainFunction, fp);
-	
+	free(mainFunction);
+
 	fclose(fp);
 
 
-}
-
-void splitGeneration(ReadyToWriteLL* toGenerate){
-
-	//Splits the processing into two threads.
 }
 
 char* parseAccessSpecifier(char accessChar){
@@ -150,7 +146,7 @@ void writeHeaderFile(ReadyToWrite *s){
 	strcpy(fileName,"output/");
 	strcat(fileName, s->className);
 	strcat(fileName,".h");
-	printf("file name writing is [%s]\n", fileName);
+//	printf("file name writing is [%s]\n", fileName);
 
 	FILE *fp = fopen(fileName, "w");
 
@@ -236,12 +232,9 @@ void writeHeaderFile(ReadyToWrite *s){
 	
 	while (members != NULL){
 
-		printf("member looking at %s\n", members->data->name);
+		//printf("member looking at %s\n", members->data->name);
 
 		int memberType = members->data->mt;
-
-
-
 		//Since used so often during these, I should cache this to avoid constant releases of something so small.
 		char* accessSpecifier = parseAccessSpecifier(members->data->accessSpecifier);
 
@@ -305,7 +298,7 @@ void writeHeaderFile(ReadyToWrite *s){
 					strcat(parameterString, " ");
 					strcat(parameterString, root->data->name);
 					
-					printf("Current parameter string [%s]\n", parameterString);
+					//printf("Current parameter string [%s]\n", parameterString);
 
 					//Then pop off root
 					addToQueue(root, root->data->left);

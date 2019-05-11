@@ -1,0 +1,3 @@
+lex uml_lex.l
+yacc -d uml_yacc.y
+gcc relationships.c structure.c member.c codeGenerator.c lex.yy.c y.tab.c -o umlCompiler
